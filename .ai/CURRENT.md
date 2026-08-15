@@ -21,4 +21,25 @@ This document tracks what's been requested and verified in the Company Knowledge
 
 - Change the seeded `admin` password to something known/managed (explicitly deferred — "i will update it later").
 - No seed data beyond the fixed sector list and the one admin user.
-- Frontend (`react-app/`) hasn't been exercised against the live backend yet.
+
+### React app generation
+
+- `react-app/` is currently an empty scaffold (just `AGENTS.md`, no implementation).
+- Prototype to build from: [`resources/prototypes/knowledge-assistant_grp7final.html`](../resources/prototypes/knowledge-assistant_grp7final.html) (static HTML/localStorage prototype — see [`resources/docs/Specifications.md`](../resources/docs/Specifications.md)).
+- Not started yet: re-platform the 3 prototype screens (signup/login, user dashboard, admin dashboard) into React, wired to the real `/api/v1` backend instead of `localStorage`.
+
+### Remaining API checks (not yet verified against the running backend)
+
+- `POST /api/v1/auth/signup` — new user signup (should land in `pending` status)
+- `GET /api/v1/sectors` — fixed sector list
+- `GET /api/v1/admin/users` + `PATCH /api/v1/admin/users/{id}/access` — admin grant/revoke flow
+- `GET /api/v1/knowledge/qa`, `POST /api/v1/knowledge/qa`, `DELETE /api/v1/knowledge/qa/{id}` — sector-scoped Q&A CRUD
+- `POST /api/v1/chat/query` — RAG-backed chat answer
+- `GET /api/v1/admin/gaps` + `POST /api/v1/admin/gaps/{id}/assign` — knowledge gap review/assignment
+
+### RAG pipeline check
+
+- `qa_entries` table is currently empty — no knowledge data has been seeded yet.
+- Pipeline (`chat_service.ask`): embed question → `retrieval.search` (pgvector similarity) → if best score ≥ `RAG_SIMILARITY_FLOOR`, call Gemini (`generation.generate`) → `gap_detection.decide` → answer or gap.
+- With zero `qa_entries`, every `/api/v1/chat/query` call will currently resolve as a gap (no match to retrieve) — need to add at least a few Q&A entries via `POST /api/v1/knowledge/qa` (or a seed migration) before this can be meaningfully tested end-to-end.
+- Also needs a valid `GEMINI_API_KEY` in `.env` for the generation step to run at all.
