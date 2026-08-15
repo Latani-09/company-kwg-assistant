@@ -8,13 +8,13 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-backend/.venv/
+python-backend/.venv/
 venv/
 
 # Node
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
+react-app/node_modules/
+react-app/dist/
+react-app/.vite/
 
 # Editors
 .vscode/
