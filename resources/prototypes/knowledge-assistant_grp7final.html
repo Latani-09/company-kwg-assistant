@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Knowledge Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-on-surface": "#f3f0f2", "outline": "#75777d", "on-background": "#1b1b1d", "surface-dim": "#dcd9db", "primary-fixed": "#d8e3fb", "surface-container-lowest": "#ffffff", "background": "#fbf8fa", "surface-bright": "#fbf8fa", "on-secondary-fixed": "#001a42", "secondary-fixed-dim": "#adc6ff", "inverse-primary": "#bcc7de", "on-surface": "#1b1b1d", "on-surface-variant": "#45474c", "error-container": "#ffdad6", "inverse-surface": "#303032", "on-tertiary-container": "#a38c6a", "primary-container": "#1e293b", "surface-container": "#f0edef", "surface": "#fbf8fa", "surface-container-highest": "#e4e2e3", "secondary-container": "#2170e4", "on-tertiary-fixed": "#271902", "on-error": "#ffffff", "secondary": "#0058be", "outline-variant": "#c5c6cd", "on-primary-fixed-variant": "#3c475a", "tertiary-fixed": "#fadfb8", "on-primary-fixed": "#111c2d", "surface-container-high": "#eae7e9", "secondary-fixed": "#d8e2ff", "on-primary": "#ffffff", "on-tertiary": "#ffffff", "tertiary-fixed-dim": "#ddc39d", "on-secondary-fixed-variant": "#004395", "on-error-container": "#93000a", "tertiary": "#1e1200", "on-tertiary-fixed-variant": "#564427", "on-primary-container": "#8590a6", "surface-container-low": "#f5f3f4", "primary-fixed-dim": "#bcc7de", "tertiary-container": "#35260c", "on-secondary-container": "#fefcff", "surface-tint": "#545f73", "surface-variant": "#e4e2e3", "error": "#ba1a1a", "on-secondary": "#ffffff", "primary": "#091426" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "md": "16px", "margin-desktop": "40px", "xl": "40px", "sm": "8px", "base": "4px", "margin-mobile": "16px", "gutter": "24px", "xs": "4px", "lg": "24px", "2xl": "64px" }, "fontFamily": { "body-lg": ["Inter"], "label": ["Geist"], "h1": ["Geist"], "code": ["JetBrains Mono"], "small": ["Inter"], "h3": ["Geist"], "body-md": ["Inter"], "h2": ["Geist"], "h1-mobile": ["Geist"] }, "fontSize": { "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }], "label": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }], "h1": ["40px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }], "code": ["14px", { "lineHeight": "1.6", "fontWeight": "400" }], "small": ["14px", { "lineHeight": "1.4", "fontWeight": "500" }], "h3": ["24px", { "lineHeight": "1.4", "fontWeight": "500" }], "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }], "h2": ["30px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }], "h1-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }] } } } }
+</script>
+<style>
+html, body { height: 100%; }
+.glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+.chip { transition: all 0.2s ease; }
+.chip.selected { background-color: #e2e8f0; color: #091426; border-color: #091426; }
+.input-field { transition: all 0.2s ease; }
+.input-field:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+.chip-container::-webkit-scrollbar { height: 4px; }
+.chip-container::-webkit-scrollbar-thumb { background-color: #c5c6cd; border-radius: 4px; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.chat-scroll::-webkit-scrollbar { width: 6px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb { background-color: #dcd9db; border-radius: 20px; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+</style>
+</head>
+<body class="h-full font-body-md text-on-surface antialiased">
+
+<!-- ============ AUTH VIEW (Login / Sign Up) ============ -->
+<div class="bg-surface min-h-screen flex items-center justify-center p-md md:p-margin-desktop relative overflow-hidden" id="authView">
+<div class="absolute inset-0 pointer-events-none opacity-[0.03] flex items-center justify-center z-0">
+<span class="material-symbols-outlined text-[800px] text-primary" style="font-variation-settings: 'FILL' 0;">lightbulb</span>
+</div>
+
+<div class="glass-panel rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] w-full max-w-md z-10 relative overflow-hidden bg-surface-container-lowest">
+<div class="p-lg border-b border-surface-container-highest text-center">
+<h1 class="font-h3 text-h3 text-primary tracking-tight">KnowledgeAssistant</h1>
+<p class="font-small text-small text-on-surface-variant mt-sm">Enterprise Intelligence Platform</p>
+</div>
+
+<div class="flex border-b border-surface-container-highest relative">
+<button class="flex-1 py-md font-label text-label text-primary border-b-2 border-secondary bg-surface-container-lowest transition-colors" id="tab-login" onclick="switchTab('login')">Log In</button>
+<button class="flex-1 py-md font-label text-label text-on-surface-variant border-b-2 border-transparent hover:bg-surface-container-low transition-colors" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+</div>
+
+<div class="p-lg">
+<div class="block animate-fade-in" id="form-login">
+<form class="space-y-md" onsubmit="handleLogin(event)">
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="login-username">Username</label>
+<input class="input-field w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant" id="login-username" placeholder="Enter username" required="" type="text"/>
+</div>
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="login-password">Password</label>
+<input class="input-field w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant" id="login-password" placeholder="••••••••" required="" type="password"/>
+</div>
+<button class="w-full bg-[#3B82F6] hover:bg-blue-600 text-white font-small text-small py-sm rounded-lg transition-colors mt-lg flex items-center justify-center gap-xs" type="submit">
+Access Workspace
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+
+<div class="mt-lg p-md bg-surface-container-low rounded-lg border border-surface-container-highest">
+<p class="font-label text-label text-on-surface-variant mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">info</span>
+Demo Environment Credentials
+</p>
+<div class="grid grid-cols-2 gap-sm font-code text-code text-on-surface">
+<div class="text-xs">
+<span class="text-on-surface-variant block mb-1">Super Admin (demo123)</span>
+<code class="block bg-surface-container-highest px-2 py-1 rounded">admin1</code>
+<code class="block bg-surface-container-highest px-2 py-1 rounded mt-1">admin2</code>
+</div>
+<div class="text-xs">
+<span class="text-on-surface-variant block mb-1">App User (demo123)</span>
+<code class="block bg-surface-container-highest px-2 py-1 rounded">user1</code>
+<code class="block bg-surface-container-highest px-2 py-1 rounded mt-1">user2</code>
+</div>
+</div>
+</div>
+</div>
+
+<div class="hidden animate-fade-in" id="form-signup">
+<form class="space-y-sm" onsubmit="handleSignup(event)">
+<div class="grid grid-cols-2 gap-sm">
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="signup-name">Full Name</label>
+<input class="input-field w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" id="signup-name" placeholder="Jane Doe" required="" type="text"/>
+</div>
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="signup-username">Username</label>
+<input class="input-field w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" id="signup-username" placeholder="janedoe" required="" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="signup-email">Corporate Email</label>
+<input class="input-field w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" id="signup-email" placeholder="jane@company.com" required="" type="email"/>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="signup-password">Password</label>
+<input class="input-field w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" id="signup-password" placeholder="••••••••" required="" type="password"/>
+</div>
+<div>
+<label class="block font-label text-label text-on-surface mb-xs" for="signup-position">Position</label>
+<input class="input-field w-full px-sm py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" id="signup-position" placeholder="Analyst" required="" type="text"/>
+</div>
+</div>
+<div class="pt-sm">
+<label class="block font-label text-label text-on-surface mb-xs">Sector(s) needed</label>
+<div class="flex flex-wrap gap-xs chip-container" id="sector-chips">
+<button class="chip px-sm py-xs border border-outline-variant rounded bg-[#F1F5F9] text-[#64748B] font-small text-xs" onclick="toggleChip(this)" type="button">Onboarding</button>
+<button class="chip px-sm py-xs border border-outline-variant rounded bg-[#F1F5F9] text-[#64748B] font-small text-xs" onclick="toggleChip(this)" type="button">Company</button>
+<button class="chip px-sm py-xs border border-outline-variant rounded bg-[#F1F5F9] text-[#64748B] font-small text-xs" onclick="toggleChip(this)" type="button">Products</button>
+<button class="chip px-sm py-xs border border-outline-variant rounded bg-[#F1F5F9] text-[#64748B] font-small text-xs" onclick="toggleChip(this)" type="button">Projects</button>
+<button class="chip px-sm py-xs border border-outline-variant rounded bg-[#F1F5F9] text-[#64748B] font-small text-xs" onclick="toggleOtherChip(this)" type="button">Other</button>
+</div>
+<div class="hidden mt-xs" id="other-sector-input">
+<input class="input-field w-full px-sm py-xs bg-surface-container-lowest border border-outline-variant rounded font-body-md text-on-surface placeholder:text-on-surface-variant text-sm" placeholder="Specify sector..." type="text"/>
+</div>
+</div>
+<button class="w-full bg-surface-container-highest border border-outline-variant hover:bg-surface-container transition-colors text-primary font-small text-small py-sm rounded-lg mt-md" type="submit">Request Access</button>
+</form>
+</div>
+
+<div class="hidden mt-md p-sm rounded-md font-small text-sm text-center" id="status-message"></div>
+</div>
+</div>
+
+<div class="fixed inset-0 bg-on-background/50 backdrop-blur-sm hidden items-center justify-center z-50 p-md" id="approval-modal">
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-lg max-w-sm w-full border border-surface-container-highest">
+<div class="flex items-center gap-sm text-on-tertiary-container mb-md" id="approval-modal-heading">
+<span class="material-symbols-outlined text-[24px]" id="approval-modal-icon">pending_actions</span>
+<h3 class="font-h3 text-h3" id="approval-modal-title">Access Pending</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-lg" id="approval-modal-text">
+Your request has been submitted to the platform administrators. You will receive an email once your workspace access is approved.
+</p>
+<button class="w-full bg-surface-container border border-outline-variant hover:bg-surface-container-high transition-colors text-primary font-small text-small py-sm rounded-lg" onclick="closeModal()">Return to Login</button>
+</div>
+</div>
+</div>
+<!-- ============ END AUTH VIEW ============ -->
+
+<!-- ============ DASHBOARD VIEW ============ -->
+<div class="hidden h-full flex flex-col bg-background text-on-surface font-body-md" id="dashboardView">
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-lg py-md max-w-[1200px] mx-auto z-10 relative">
+<div class="flex items-center gap-xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Knowledge Assistant</h1>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-secondary font-bold border-b-2 border-secondary pb-1 hover:bg-surface-container-low transition-colors px-xs" href="#">Dashboard</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary hover:bg-surface-container-low transition-colors px-xs" href="#" id="adminNavLink" onclick="showAdminView(); return false;">Admin</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-label text-label text-on-surface-variant hidden sm:inline js-user-badge"></span>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<button class="font-label text-label text-on-surface-variant hover:text-primary flex items-center gap-xs js-logout-btn">Logout</button>
+</div>
+</header>
+
+<main class="flex-1 w-full max-w-[1200px] mx-auto p-lg flex flex-col md:flex-row gap-lg overflow-hidden h-[calc(100vh-80px)]">
+<section class="flex-1 flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden h-full">
+<div class="p-md border-b border-surface-variant flex items-center justify-between bg-surface-bright">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<div>
+<h2 class="font-small text-small font-semibold text-primary">Assistant</h2>
+<p class="font-label text-label text-on-surface-variant font-normal">Ready to answer your questions</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+
+<div class="flex-1 overflow-y-auto p-md space-y-md chat-scroll bg-surface-container-low" id="chatHistory">
+<div class="flex items-start gap-sm">
+<div class="w-6 h-6 rounded-full bg-secondary-container text-secondary flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="bg-surface-container-lowest border-l-2 border-secondary p-md rounded-lg shadow-sm max-w-[85%]">
+<p class="font-body-md text-body-md text-on-surface">Hello. I am your company knowledge assistant. Ask me anything about internal documentation, policies, or technical specs.</p>
+</div>
+</div>
+</div>
+
+<div class="p-md border-t border-surface-variant bg-surface-bright">
+<form class="relative flex items-end gap-sm" id="chatForm">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-sm px-md text-body-md font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 resize-none overflow-hidden min-h-[44px] max-h-[120px]" id="chatInput" placeholder="Ask a question..." rows="1"></textarea>
+<button class="bg-secondary text-on-secondary rounded-lg w-11 h-11 flex items-center justify-center flex-shrink-0 hover:bg-secondary/90 transition-colors" type="submit">
+<span class="material-symbols-outlined">send</span>
+</button>
+</form>
+<div class="mt-xs text-center">
+<p class="font-label text-label text-outline font-normal">AI can make mistakes. Verify important information.</p>
+</div>
+</div>
+</section>
+
+<section class="w-full md:w-[400px] lg:w-[450px] flex flex-col gap-md h-full overflow-hidden">
+<div class="bg-surface-container-lowest p-md rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] flex-shrink-0">
+<h3 class="font-h3 text-h3 text-primary mb-xs">My Knowledge Base</h3>
+<p class="font-small text-small text-on-surface-variant font-normal">Manage documents assigned to your active sectors.</p>
+</div>
+
+<div class="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden">
+<div class="flex border-b border-surface-variant bg-surface-bright overflow-x-auto scrollbar-hide">
+<button class="px-md py-sm font-small text-small text-secondary font-semibold border-b-2 border-secondary whitespace-nowrap" id="kb-tab-company" onclick="switchKbSector('Company')">Company</button>
+<button class="px-md py-sm font-small text-small text-on-surface-variant hover:text-primary whitespace-nowrap" id="kb-tab-hr" onclick="switchKbSector('HR Policies')">HR Policies</button>
+</div>
+
+<div class="flex-1 overflow-y-auto p-md space-y-sm bg-surface-container-low chat-scroll" id="kbList">
+<div class="hidden h-full flex flex-col items-center justify-center text-center p-md" id="emptyKbState">
+<span class="material-symbols-outlined text-4xl text-outline-variant mb-sm">note_stack</span>
+<p class="font-small text-small text-on-surface-variant">No documents in this sector.</p>
+</div>
+</div>
+
+<div class="p-sm border-t border-surface-variant bg-surface-bright">
+<button class="w-full flex items-center justify-center gap-xs py-sm px-md border border-outline-variant rounded-lg font-small text-small text-primary hover:bg-surface-container-low transition-colors" id="openAddDocBtn">
+<span class="material-symbols-outlined text-[18px]">add</span> Add New Document
+</button>
+</div>
+</div>
+</section>
+</main>
+
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/50 backdrop-blur-sm p-md" id="addDocModal">
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] w-full max-w-md overflow-hidden">
+<div class="p-md border-b border-surface-variant flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-primary">Add Knowledge</h3>
+<button class="text-on-surface-variant hover:text-primary" id="closeAddDocBtn">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<form class="p-md space-y-md" id="addDocForm">
+<div>
+<label class="block font-small text-small text-primary mb-xs">Question / Title</label>
+<input class="w-full bg-surface border border-outline-variant rounded-md py-sm px-sm text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none" required="" type="text" id="docTitle"/>
+</div>
+<div>
+<label class="block font-small text-small text-primary mb-xs">Sector</label>
+<select class="w-full bg-surface border border-outline-variant rounded-md py-sm px-sm text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none" id="docSector" required="">
+<option value="Product">Product</option>
+</select>
+</div>
+<div>
+<label class="block font-small text-small text-primary mb-xs">Answer / Content</label>
+<textarea class="w-full bg-surface border border-outline-variant rounded-md py-sm px-sm text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none resize-none" required="" rows="4" id="docContent"></textarea>
+</div>
+<div>
+<label class="block font-small text-small text-primary mb-xs">Source Reference</label>
+<input class="w-full bg-surface border border-outline-variant rounded-md py-sm px-sm text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none" placeholder="e.g., Doc-123 or URL" required="" type="text" id="docSource"/>
+</div>
+<div>
+<label class="block font-small text-small text-primary mb-xs">Attachment (optional)</label>
+<div class="flex items-center gap-sm">
+<input class="hidden" id="docFileInput" type="file" onchange="handleDocFileSelect(this)"/>
+<button class="flex items-center gap-xs px-md py-sm border border-outline-variant rounded-lg font-small text-small text-primary hover:bg-surface-container-low transition-colors" type="button" onclick="document.getElementById('docFileInput').click()">
+<span class="material-symbols-outlined text-[18px]">upload</span> Upload File
+</button>
+<span class="font-label text-label text-on-surface-variant line-clamp-1" id="docFileName"></span>
+</div>
+</div>
+<div class="pt-sm flex justify-end gap-sm">
+<button class="px-md py-sm border border-outline-variant rounded-lg font-small text-small text-on-surface-variant hover:bg-surface-container-low transition-colors" id="cancelAddDocBtn" type="button">Cancel</button>
+<button class="px-md py-sm bg-secondary text-on-secondary rounded-lg font-small text-small hover:bg-secondary/90 transition-colors" type="submit">Save Document</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- ============ END DASHBOARD VIEW ============ -->
+
+<!-- ============ ADMIN VIEW (Super Admin only) ============ -->
+<div class="hidden h-full flex flex-col bg-background text-on-surface font-body-md" id="adminView">
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-lg py-md max-w-[1200px] mx-auto z-10 relative">
+<div class="flex items-center gap-xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Knowledge Assistant</h1>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary hover:bg-surface-container-low transition-colors px-xs" href="#" onclick="showDashboardView(); return false;">Dashboard</a>
+<a class="font-body-md text-body-md text-secondary font-bold border-b-2 border-secondary pb-1 hover:bg-surface-container-low transition-colors px-xs" href="#">Admin</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-label text-label text-on-surface-variant hidden sm:inline js-user-badge"></span>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-sm rounded-full hover:bg-surface-container-low transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<button class="font-label text-label text-on-surface-variant hover:text-primary flex items-center gap-xs js-logout-btn">Logout</button>
+</div>
+</header>
+
+<main class="flex-1 overflow-y-auto px-lg py-xl">
+<div class="max-w-[1200px] mx-auto space-y-lg">
+<div class="flex flex-wrap items-center justify-between gap-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-xs flex gap-xs w-fit shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+<button class="px-md py-sm rounded font-small text-small font-bold bg-secondary/10 text-secondary transition-colors" id="tab-users-btn" onclick="switchAdminTab('users')">User Management</button>
+<button class="px-md py-sm rounded font-small text-small text-on-surface-variant hover:bg-surface-container-low transition-colors" id="tab-gaps-btn" onclick="switchAdminTab('gaps')">Knowledge Gaps</button>
+</div>
+<div class="relative w-full sm:w-56 md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-[36px] pr-sm py-[6px] font-small text-small focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search..." type="text"/>
+</div>
+</div>
+
+<!-- TAB 1: User Management -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col min-h-[500px]" id="tab-users">
+<div class="px-md py-sm border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
+<h2 class="font-h3 text-h3 text-primary">Signed-up Users</h2>
+<span class="font-label text-label text-on-surface-variant">Grant or revoke workspace access</span>
+</div>
+<div class="overflow-x-auto custom-scrollbar flex-1">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low/30 sticky top-0 border-b border-outline-variant">
+<tr>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Name</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Email</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Position</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Sector(s)</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider text-center">Status</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50 font-small text-small" id="user-table-body">
+<!-- Populated by JS -->
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- TAB 2: Knowledge Gaps -->
+<div class="hidden bg-surface-container-lowest border border-outline-variant rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col min-h-[500px]" id="tab-gaps">
+<div class="px-md py-sm border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
+<h2 class="font-h3 text-h3 text-primary">Flagged Knowledge Gaps</h2>
+<span class="bg-[#F1F5F9] text-[#64748B] font-label text-label px-sm py-xs rounded">Requires Action</span>
+</div>
+<div class="overflow-x-auto custom-scrollbar flex-1">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low/30 sticky top-0 border-b border-outline-variant">
+<tr>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider w-2/5">Question / Topic</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Sector</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Requested By</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Assign To</th>
+<th class="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50 font-small text-small">
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="py-md px-md">
+<p class="font-medium text-primary">What is our internal policy on utilizing open-source LLMs for client projects?</p>
+</td>
+<td class="py-md px-md align-top"><span class="bg-[#F1F5F9] text-[#64748B] px-xs py-[2px] rounded text-[12px]">Company</span></td>
+<td class="py-md px-md text-on-surface-variant align-top">Sarah Jenkins</td>
+<td class="py-md px-md align-top">
+<select class="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full">
+<option value="">Select SME...</option>
+<option value="Robert Chen">Robert Chen (Legal)</option>
+<option value="Elena Rostova">Elena Rostova (Tech Lead)</option>
+</select>
+</td>
+<td class="py-md px-md text-right align-top">
+<button class="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors" onclick="assignGap(this)">Assign</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="py-md px-md">
+<p class="font-medium text-primary">Details regarding Q3 2024 compliance updates for the APAC region.</p>
+</td>
+<td class="py-md px-md align-top"><span class="bg-[#F1F5F9] text-[#64748B] px-xs py-[2px] rounded text-[12px]">HR Policies</span></td>
+<td class="py-md px-md text-on-surface-variant align-top">Michael Chang</td>
+<td class="py-md px-md align-top">
+<select class="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full">
+<option value="">Select SME...</option>
+<option value="Robert Chen">Robert Chen (Legal)</option>
+<option value="Elena Rostova">Elena Rostova (Tech Lead)</option>
+</select>
+</td>
+<td class="py-md px-md text-right align-top">
+<button class="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors" onclick="assignGap(this)">Assign</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="py-md px-md">
+<p class="font-medium text-primary">What's the current product roadmap and feature prioritization for next quarter?</p>
+</td>
+<td class="py-md px-md align-top"><span class="bg-[#F1F5F9] text-[#64748B] px-xs py-[2px] rounded text-[12px]">Project</span></td>
+<td class="py-md px-md text-on-surface-variant align-top">user1</td>
+<td class="py-md px-md align-top">
+<select class="gap-assign-select bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full" data-sector="project">
+<option value="">Select SME...</option>
+</select>
+</td>
+<td class="py-md px-md text-right align-top">
+<button class="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors" onclick="assignGap(this)">Assign</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="py-md px-md">
+<p class="font-medium text-primary">Could we get clarification on the product pricing tiers for the upcoming release?</p>
+</td>
+<td class="py-md px-md align-top"><span class="bg-[#F1F5F9] text-[#64748B] px-xs py-[2px] rounded text-[12px]">Product</span></td>
+<td class="py-md px-md text-on-surface-variant align-top">user1</td>
+<td class="py-md px-md align-top">
+<select class="gap-assign-select bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full" data-sector="product">
+<option value="">Select SME...</option>
+</select>
+</td>
+<td class="py-md px-md text-right align-top">
+<button class="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors" onclick="assignGap(this)">Assign</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+
+<div class="fixed bottom-lg right-lg bg-inverse-surface text-inverse-on-surface px-md py-sm rounded-lg shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] flex items-center gap-sm transform translate-y-[150%] opacity-0 transition-all duration-300 z-50" id="admin-toast">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-small text-small" id="admin-toast-message">Action successful</span>
+</div>
+</div>
+<!-- ============ END ADMIN VIEW ============ -->
+
+<script>
+    // =========================================================
+    // Everything below runs inside ONE document. Logging in / out
+    // just swaps which <div> is visible — there is no page
+    // navigation, so there is nothing for the two views to
+    // "fight" over in localStorage. This is what fixes the
+    // login <-> dashboard bounce some browsers showed when the
+    // app was split across index.html / dashboard.html and opened
+    // via file://.
+    // =========================================================
+
+    // ---- Mock user directory ----
+    // Single source of truth for every user in the app: { username: { role, status,
+    // password, sectors: [...], name, email, position } }. `sectors` drives both what
+    // shows in the admin "Sector(s)" column and who shows up in the Knowledge Gaps
+    // Assign-To dropdowns for a given sector — add someone here (or via signup) with
+    // the right sector and they automatically appear in both places, no other edits needed.
+    const SECTOR_LABELS = { all: 'All', onboarding: 'Onboarding', company: 'Company', project: 'Project', product: 'Product' };
+    function sectorLabel(key) {
+        return SECTOR_LABELS[key] || (key.charAt(0).toUpperCase() + key.slice(1));
+    }
+
+    const initializeMockUsers = () => {
+        const seed = {
+            'admin1':      { role: 'superAdmin', status: 'granted', password: 'demo123', sectors: ['all'] },
+            'admin2':      { role: 'superAdmin', status: 'granted', password: 'demo123', sectors: ['all'] },
+            'user1':       { role: 'user',       status: 'granted', password: 'demo123', sectors: ['all'] },
+            'user2':       { role: 'user',       status: 'granted', password: 'demo123', sectors: ['onboarding', 'company'] },
+            'latani':      { role: 'user',       status: 'granted', password: 'demo123', sectors: ['project'], name: 'Latani' },
+            'vishwathika': { role: 'user',       status: 'granted', password: 'demo123', sectors: ['product'], name: 'Vishwathika' },
+            'kayathri':    { role: 'user',       status: 'granted', password: 'demo123', sectors: ['project'], name: 'Kayathri' },
+            'rani':        { role: 'user',       status: 'granted', password: 'demo123', sectors: ['product'], name: 'Rani' }
+        };
+        let users = JSON.parse(localStorage.getItem('mockUsersData') || 'null');
+        if (!users) {
+            users = seed;
+        } else {
+            // Upgrade an existing (older-shape) localStorage record in place:
+            // add any seed account that's missing, without touching real signups.
+            Object.keys(seed).forEach(username => {
+                if (!users[username]) users[username] = seed[username];
+            });
+            // Normalize every record's sectors to an array (older builds stored it
+            // as a comma-separated display string).
+            Object.keys(users).forEach(username => {
+                const u = users[username];
+                if (typeof u.sectors === 'string') {
+                    u.sectors = u.sectors.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                } else if (!Array.isArray(u.sectors)) {
+                    u.sectors = [];
+                }
+            });
+        }
+        localStorage.setItem('mockUsersData', JSON.stringify(users));
+    };
+    initializeMockUsers();
+
+    const authView = document.getElementById('authView');
+    const dashboardView = document.getElementById('dashboardView');
+    const adminView = document.getElementById('adminView');
+
+    function currentSession() {
+        const raw = localStorage.getItem('activeSession');
+        return raw ? JSON.parse(raw) : null;
+    }
+
+    function updateUserBadges(session) {
+        const label = `${session.username} · ${session.role === 'superAdmin' ? 'Super Admin' : 'App User'}`;
+        document.querySelectorAll('.js-user-badge').forEach(el => el.textContent = label);
+    }
+
+    function showAuthView() {
+        dashboardView.classList.add('hidden');
+        adminView.classList.add('hidden');
+        authView.classList.remove('hidden');
+    }
+
+    function showDashboardView() {
+        const session = currentSession();
+        if (!session) { showAuthView(); return; }
+        updateUserBadges(session);
+        document.getElementById('adminNavLink').classList.toggle('hidden', session.role !== 'superAdmin');
+        authView.classList.add('hidden');
+        adminView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+    }
+
+    // Admin dashboard is restricted to the superAdmin role. Anyone else
+    // (or anyone without a session at all) gets bounced back automatically —
+    // the nav link is also hidden for non-admins, this is the defensive check.
+    function showAdminView() {
+        const session = currentSession();
+        if (!session) { showAuthView(); return; }
+        if (session.role !== 'superAdmin') { showDashboardView(); return; }
+        updateUserBadges(session);
+        renderAdminUsers();
+        renderGapAssignSelects();
+        authView.classList.add('hidden');
+        dashboardView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+    }
+
+    // Resume an existing session on load (e.g. after a page refresh)
+    if (currentSession()) {
+        showDashboardView();
+    }
+
+    // ---- Auth view: tabs, chips, login, signup ----
+    function switchTab(tabId) {
+        const loginForm = document.getElementById('form-login');
+        const signupForm = document.getElementById('form-signup');
+        const loginTab = document.getElementById('tab-login');
+        const signupTab = document.getElementById('tab-signup');
+        const statusMsg = document.getElementById('status-message');
+        statusMsg.classList.add('hidden');
+        if (tabId === 'login') {
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+            loginTab.classList.replace('text-on-surface-variant', 'text-primary');
+            loginTab.classList.replace('border-transparent', 'border-secondary');
+            loginTab.classList.replace('hover:bg-surface-container-low', 'bg-surface-container-lowest');
+            signupTab.classList.replace('text-primary', 'text-on-surface-variant');
+            signupTab.classList.replace('border-secondary', 'border-transparent');
+            signupTab.classList.replace('bg-surface-container-lowest', 'hover:bg-surface-container-low');
+        } else {
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            signupTab.classList.replace('text-on-surface-variant', 'text-primary');
+            signupTab.classList.replace('border-transparent', 'border-secondary');
+            signupTab.classList.replace('hover:bg-surface-container-low', 'bg-surface-container-lowest');
+            loginTab.classList.replace('text-primary', 'text-on-surface-variant');
+            loginTab.classList.replace('border-secondary', 'border-transparent');
+            loginTab.classList.replace('bg-surface-container-lowest', 'hover:bg-surface-container-low');
+        }
+    }
+
+    // Purely cosmetic in this prototype (no backend to actually store the file) —
+    // just shows the picked filename and, if the title is still empty, uses it
+    // as a starting point for the title.
+    function handleDocFileSelect(input) {
+        const file = input.files && input.files[0];
+        const nameEl = document.getElementById('docFileName');
+        if (!file) { nameEl.textContent = ''; return; }
+        nameEl.textContent = file.name;
+        const titleField = document.getElementById('docTitle');
+        if (titleField && !titleField.value.trim()) {
+            titleField.value = file.name.replace(/\.[^/.]+$/, '');
+        }
+    }
+
+    function toggleChip(element) { element.classList.toggle('selected'); }
+    function toggleOtherChip(element) {
+        toggleChip(element);
+        const otherInput = document.getElementById('other-sector-input');
+        if (element.classList.contains('selected')) {
+            otherInput.classList.remove('hidden');
+            otherInput.querySelector('input').focus();
+        } else {
+            otherInput.classList.add('hidden');
+            otherInput.querySelector('input').value = '';
+        }
+    }
+
+    function showMessage(msg, isError = false) {
+        const statusDiv = document.getElementById('status-message');
+        statusDiv.textContent = msg;
+        statusDiv.classList.remove('hidden', 'bg-error-container', 'text-on-error-container', 'bg-surface-container-highest', 'text-primary');
+        if (isError) {
+            statusDiv.classList.add('bg-error-container', 'text-on-error-container');
+        } else {
+            statusDiv.classList.add('bg-surface-container-highest', 'text-primary');
+        }
+    }
+
+    // Shows the modal with copy appropriate to *why* the account can't log in:
+    // a brand-new signup still waiting on an admin vs. an existing account
+    // whose access was revoked. Only 'granted' accounts ever reach handleLogin's
+    // success branch — everything else (pending or revoked) lands here.
+    function openStatusModal(status) {
+        const heading = document.getElementById('approval-modal-heading');
+        const icon = document.getElementById('approval-modal-icon');
+        const title = document.getElementById('approval-modal-title');
+        const text = document.getElementById('approval-modal-text');
+        if (status === 'revoked') {
+            heading.classList.remove('text-on-tertiary-container');
+            heading.classList.add('text-error');
+            icon.textContent = 'block';
+            title.textContent = 'Access Revoked';
+            text.textContent = 'Your workspace access has been revoked by an administrator. Contact your admin if you believe this is a mistake.';
+        } else {
+            heading.classList.remove('text-error');
+            heading.classList.add('text-on-tertiary-container');
+            icon.textContent = 'pending_actions';
+            title.textContent = 'Access Pending';
+            text.textContent = 'Your request has been submitted to the platform administrators. You will receive an email once your workspace access is approved.';
+        }
+        document.getElementById('approval-modal').classList.remove('hidden');
+        document.getElementById('approval-modal').classList.add('flex');
+    }
+
+    // Remembers whoever most recently hit the Pending/Revoked modal, so a grant
+    // that arrives from another tab (see the 'storage' listener below) knows
+    // whose modal to clear.
+    let lastAttemptedUsername = null;
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        const usersData = JSON.parse(localStorage.getItem('mockUsersData') || '{}');
+        const user = usersData[username];
+        if (user && user.password === password) {
+            if (user.status === 'granted') {
+                localStorage.setItem('activeSession', JSON.stringify({ username: username, role: user.role }));
+                showDashboardView();
+            } else {
+                lastAttemptedUsername = username;
+                openStatusModal(user.status);
+            }
+        } else {
+            showMessage('Invalid username or password.', true);
+        }
+    }
+
+    // Revoking someone mid-session is already handled same-tab (toggleUserStatus
+    // logs them out directly). This is the cross-tab / "other direction" half:
+    // if you have this app open in two tabs — one admin, one a pending/revoked
+    // user stuck on the modal — granting access in the admin tab now updates the
+    // waiting tab automatically via the browser's 'storage' event (fires in
+    // every OTHER same-origin tab when localStorage changes, not the tab that
+    // made the change).
+    window.addEventListener('storage', (e) => {
+        if (e.key !== 'mockUsersData' || !e.newValue) return;
+        const usersData = JSON.parse(e.newValue);
+
+        // A logged-in user whose access just got revoked from another tab —
+        // sign them out here too instead of leaving a now-invalid session open.
+        const session = currentSession();
+        if (session) {
+            const me = usersData[session.username];
+            if (!me || me.status !== 'granted') {
+                localStorage.removeItem('activeSession');
+                showAuthView();
+                showMessage('Your access was revoked by an administrator.', true);
+            }
+        }
+
+        // Someone sitting on the Pending/Revoked modal just got granted access.
+        if (lastAttemptedUsername && !document.getElementById('approval-modal').classList.contains('hidden')) {
+            const attempted = usersData[lastAttemptedUsername];
+            if (attempted && attempted.status === 'granted') {
+                closeModal();
+                document.getElementById('login-username').value = lastAttemptedUsername;
+                showMessage('Your access has been granted — please log in again.', false);
+            }
+        }
+    });
+
+    function handleSignup(e) {
+        e.preventDefault();
+        const username = document.getElementById('signup-username').value;
+        const usersData = JSON.parse(localStorage.getItem('mockUsersData') || '{}');
+        if (usersData[username]) {
+            showMessage('Username already exists.', true);
+            return;
+        }
+        // Map the signup chip labels onto the same lowercase sector keys used
+        // everywhere else (seed roster, Knowledge Gaps assign dropdowns), so a
+        // brand-new signup automatically becomes assignable in their sector.
+        const CHIP_TO_SECTOR = { 'Onboarding': 'onboarding', 'Company': 'company', 'Products': 'product', 'Projects': 'project' };
+        const otherSector = document.querySelector('#other-sector-input input').value.trim();
+        const sectors = Array.from(document.querySelectorAll('#sector-chips .chip.selected'))
+            .map(c => c.textContent.trim())
+            .map(label => label === 'Other' ? (otherSector.toLowerCase() || null) : (CHIP_TO_SECTOR[label] || label.toLowerCase()))
+            .filter(Boolean);
+        usersData[username] = {
+            role: 'user',
+            status: 'pending',
+            password: document.getElementById('signup-password').value,
+            name: document.getElementById('signup-name').value,
+            email: document.getElementById('signup-email').value,
+            position: document.getElementById('signup-position').value,
+            sectors: sectors
+        };
+        localStorage.setItem('mockUsersData', JSON.stringify(usersData));
+        openStatusModal('pending');
+        e.target.reset();
+        document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+        document.getElementById('other-sector-input').classList.add('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('approval-modal').classList.add('hidden');
+        document.getElementById('approval-modal').classList.remove('flex');
+        switchTab('login');
+    }
+
+    // ---- Dashboard view: chat, knowledge base, logout ----
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatHistory = document.getElementById('chatHistory');
+
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+            addMessage(text, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            setTimeout(() => {
+                if (text.toLowerCase().includes('unknown')) {
+                    addMessage("I don't have information on that in my current knowledge base. I have flagged this gap for review.", 'assistant', true);
+                    console.log("Gap flagged: ", text);
+                } else {
+                    addMessage(`Here is the information regarding "${text}". Based on internal docs, the system uses a standard approach.`, 'assistant', false, 'Source: Eng-Doc-042');
+                }
+            }, 800);
+        });
+
+        function addMessage(text, sender, isGap = false, source = null) {
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-sm ${sender === 'user' ? 'justify-end' : ''}`;
+            let innerHTML = '';
+            if (sender === 'assistant') {
+                innerHTML += `
+                    <div class="w-6 h-6 rounded-full bg-secondary-container text-secondary flex items-center justify-center flex-shrink-0 mt-1">
+                        <span class="material-symbols-outlined text-[14px]">smart_toy</span>
+                    </div>
+                `;
+            }
+            let boxClasses = sender === 'user'
+                ? 'bg-surface-container-highest text-on-surface rounded-lg p-md max-w-[85%]'
+                : `bg-surface-container-lowest border-l-2 ${isGap ? 'border-error' : 'border-secondary'} p-md rounded-lg shadow-sm max-w-[85%]`;
+            let contentHTML = `<p class="font-body-md text-body-md">${text}</p>`;
+            if (source) {
+                contentHTML += `<div class="mt-sm pt-sm border-t border-surface-variant flex items-center gap-xs text-outline font-label text-label"><span class="material-symbols-outlined text-[14px]">description</span> ${source}</div>`;
+            }
+            if (isGap) {
+                contentHTML += `<div class="mt-sm flex items-center gap-xs text-error font-label text-label"><span class="material-symbols-outlined text-[14px]">warning</span> Gap Logged</div>`;
+            }
+            innerHTML += `<div class="${boxClasses}">${contentHTML}</div>`;
+            div.innerHTML = innerHTML;
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        const addDocBtn = document.getElementById('openAddDocBtn');
+        const addDocModal = document.getElementById('addDocModal');
+        const closeDocBtn = document.getElementById('closeAddDocBtn');
+        const cancelDocBtn = document.getElementById('cancelAddDocBtn');
+        function toggleModal(show) {
+            addDocModal.classList.toggle('hidden', !show);
+            if (!show) {
+                document.getElementById('docFileInput').value = '';
+                document.getElementById('docFileName').textContent = '';
+            }
+        }
+        addDocBtn.addEventListener('click', () => toggleModal(true));
+        closeDocBtn.addEventListener('click', () => toggleModal(false));
+        cancelDocBtn.addEventListener('click', () => toggleModal(false));
+
+        document.getElementById('addDocForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('docTitle').value;
+            const sector = document.getElementById('docSector').value;
+            const content = document.getElementById('docContent').value;
+            const source = document.getElementById('docSource').value;
+            kbDocs.push({ id: nextKbId++, sector, title, content, source });
+            renderKbList();
+            e.target.reset();
+            toggleModal(false);
+        });
+
+        document.querySelectorAll('.js-logout-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                localStorage.removeItem('activeSession');
+                showAuthView();
+            });
+        });
+
+        renderKbList();
+    });
+
+    // ---- Knowledge Base: sector tabs (Company / HR Policies) ----
+    let kbDocs = [
+        { id: 1, sector: 'Company',    title: 'Deployment Pipeline Architecture', content: 'The core CI/CD pipeline uses GitHub actions deployed to AWS ECS...', source: 'Eng-Doc-042' },
+        { id: 2, sector: 'HR Policies', title: 'Remote Work Policy',               content: 'Employees may work remotely up to 3 days per week with manager approval...', source: 'HR-Doc-011' },
+        { id: 3, sector: 'HR Policies', title: 'Paid Time Off Guidelines',         content: 'Full-time employees accrue 15 PTO days annually, prorated for new hires...', source: 'HR-Doc-014' }
+    ];
+    let nextKbId = 4;
+    let activeKbSector = 'Company';
+
+    function switchKbSector(sector) {
+        activeKbSector = sector;
+        const base = 'px-md py-sm font-small text-small whitespace-nowrap';
+        document.getElementById('kb-tab-company').className = base + (sector === 'Company' ? ' text-secondary font-semibold border-b-2 border-secondary' : ' text-on-surface-variant hover:text-primary');
+        document.getElementById('kb-tab-hr').className = base + (sector === 'HR Policies' ? ' text-secondary font-semibold border-b-2 border-secondary' : ' text-on-surface-variant hover:text-primary');
+        renderKbList();
+    }
+
+    function renderKbList() {
+        const kbList = document.getElementById('kbList');
+        const emptyState = document.getElementById('emptyKbState');
+        if (!kbList || !emptyState) return;
+        kbList.querySelectorAll('.kb-doc-item').forEach(el => el.remove());
+        const docs = kbDocs.filter(d => d.sector === activeKbSector);
+        emptyState.classList.toggle('hidden', docs.length > 0);
+        docs.forEach(doc => kbList.appendChild(buildKbItemElement(doc)));
+    }
+
+    function buildKbItemElement(doc) {
+        const item = document.createElement('div');
+        item.className = 'kb-doc-item bg-surface-container-lowest p-sm rounded border border-outline-variant group';
+        item.innerHTML = `
+            <div class="flex justify-between items-start gap-sm">
+                <div class="flex-1">
+                    <h4 class="font-small text-small text-primary font-semibold line-clamp-1">${doc.title}</h4>
+                    <p class="font-label text-label text-on-surface-variant font-normal mt-xs line-clamp-2">${doc.content}</p>
+                    <div class="mt-sm flex items-center gap-xs">
+                        <span class="inline-flex items-center px-xs py-0.5 rounded text-[10px] font-medium bg-surface-container-high text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[12px] mr-[2px]">description</span> ${doc.source}
+                        </span>
+                    </div>
+                </div>
+                <button class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 p-xs rounded hover:bg-error-container" onclick="deleteKbDoc(${doc.id})">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+            </div>`;
+        return item;
+    }
+
+    function deleteKbDoc(id) {
+        kbDocs = kbDocs.filter(d => d.id !== id);
+        renderKbList();
+    }
+
+    // ---- Admin view: tabs, user table, toast ----
+    function switchAdminTab(tabId) {
+        const usersTab = document.getElementById('tab-users');
+        const gapsTab = document.getElementById('tab-gaps');
+        const usersBtn = document.getElementById('tab-users-btn');
+        const gapsBtn = document.getElementById('tab-gaps-btn');
+        if (tabId === 'users') {
+            usersTab.classList.remove('hidden');
+            gapsTab.classList.add('hidden');
+            usersBtn.classList.add('bg-secondary/10', 'text-secondary', 'font-bold');
+            usersBtn.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+            gapsBtn.classList.remove('bg-secondary/10', 'text-secondary', 'font-bold');
+            gapsBtn.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+        } else {
+            gapsTab.classList.remove('hidden');
+            usersTab.classList.add('hidden');
+            gapsBtn.classList.add('bg-secondary/10', 'text-secondary', 'font-bold');
+            gapsBtn.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+            usersBtn.classList.remove('bg-secondary/10', 'text-secondary', 'font-bold');
+            usersBtn.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+        }
+    }
+
+    function showAdminToast(message) {
+        const toast = document.getElementById('admin-toast');
+        document.getElementById('admin-toast-message').textContent = message;
+        toast.classList.remove('translate-y-[150%]', 'opacity-0');
+        setTimeout(() => toast.classList.add('translate-y-[150%]', 'opacity-0'), 3000);
+    }
+
+    // Reads whichever SME is chosen in this row's dropdown and notifies them.
+    function assignGap(btn) {
+        const row = btn.closest('tr');
+        const select = row.querySelector('select');
+        if (!select || !select.value) {
+            showAdminToast('Select an SME before assigning.');
+            return;
+        }
+        const name = select.options[select.selectedIndex].text;
+        showAdminToast(`Notified ${name} by email`);
+    }
+
+    // Pulls straight from the same mockUsersData the login/signup screens use,
+    // so anyone who signs up shows up here as Pending, and Granting them here
+    // is what actually lets them log in afterwards.
+    function renderAdminUsers() {
+        const tbody = document.getElementById('user-table-body');
+        if (!tbody) return;
+        const usersData = JSON.parse(localStorage.getItem('mockUsersData') || '{}');
+        tbody.innerHTML = '';
+        Object.keys(usersData).forEach(username => {
+            const u = usersData[username];
+            const granted = u.status === 'granted';
+            const revoked = u.status === 'revoked';
+            const statusLabel = granted ? 'Granted' : (revoked ? 'Revoked' : 'Pending');
+            const statusColor = granted ? 'text-secondary bg-secondary/10' : (revoked ? 'text-error bg-error-container/50' : 'text-[#564427] bg-[#fadfb8]/40');
+            const roleLabel = u.role === 'superAdmin' ? 'Super Admin' : 'App User';
+            const sectorsDisplay = Array.isArray(u.sectors) && u.sectors.length ? u.sectors.map(sectorLabel).join(', ') : '—';
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-surface-container-low/30 transition-colors';
+            tr.innerHTML = `
+                <td class="py-md px-md font-medium text-primary">${u.name || username}</td>
+                <td class="py-md px-md text-on-surface-variant">${u.email || '—'}</td>
+                <td class="py-md px-md">${u.position || roleLabel}</td>
+                <td class="py-md px-md text-on-surface-variant"><span class="bg-[#F1F5F9] text-[#64748B] px-xs py-[2px] rounded text-[12px]">${sectorsDisplay}</span></td>
+                <td class="py-md px-md text-center">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full font-label text-label ${statusColor}">${statusLabel}</span>
+                </td>
+                <td class="py-md px-md text-right space-x-sm">
+                    ${granted
+                        ? `<button onclick="toggleUserStatus('${username}', 'revoked')" class="text-error hover:bg-error-container/20 px-sm py-xs rounded font-small text-small transition-colors">Revoke</button>`
+                        : `<button onclick="toggleUserStatus('${username}', 'granted')" class="border border-outline-variant text-primary hover:bg-surface-container-low px-sm py-xs rounded font-small text-small transition-colors">Grant</button>`
+                    }
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Populates every Knowledge Gaps "Assign To" dropdown tagged with a
+    // data-sector from whoever in mockUsersData is granted and has that
+    // sector — so a new signup or a newly-added seed user shows up here
+    // automatically, no manual dropdown editing needed.
+    function renderGapAssignSelects() {
+        const usersData = JSON.parse(localStorage.getItem('mockUsersData') || '{}');
+        document.querySelectorAll('.gap-assign-select').forEach(select => {
+            const sector = select.dataset.sector;
+            const prevValue = select.value;
+            select.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
+            Object.keys(usersData).forEach(username => {
+                const u = usersData[username];
+                if (u.status !== 'granted') return;
+                if (!Array.isArray(u.sectors) || !u.sectors.includes(sector)) return;
+                const opt = document.createElement('option');
+                opt.value = username;
+                opt.textContent = u.name || username;
+                select.appendChild(opt);
+            });
+            if (Array.from(select.options).some(o => o.value === prevValue)) select.value = prevValue;
+        });
+    }
+
+    function toggleUserStatus(username, newStatus) {
+        const usersData = JSON.parse(localStorage.getItem('mockUsersData') || '{}');
+        if (!usersData[username]) return;
+        usersData[username].status = newStatus;
+        localStorage.setItem('mockUsersData', JSON.stringify(usersData));
+        renderAdminUsers();
+        renderGapAssignSelects();
+        showAdminToast(`Access ${newStatus === 'granted' ? 'granted' : 'revoked'} for ${usersData[username].name || username}`);
+
+        // If the person being revoked is the one currently logged in, kick them
+        // out immediately instead of leaving their open session usable.
+        if (newStatus !== 'granted') {
+            const session = currentSession();
+            if (session && session.username === username) {
+                localStorage.removeItem('activeSession');
+                showAuthView();
+            }
+        }
+    }
+</script>
+</body></html>
