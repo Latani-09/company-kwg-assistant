@@ -1,0 +1,97 @@
+# Company Knowledge Assistant
+
+This repository is set up as a two-part application scaffold:
+
+- backend/: Python FastAPI API
+- frontend/: React + Vite frontend
+
+## Quick start
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0
+```
+
+Open the app at http://localhost:5173 and the API at http://localhost:8000.
+
+## Project status
+
+The workspace now contains a runnable scaffold for the Company Knowledge Assistant product. The backend exposes a health endpoint and sample knowledge data, while the frontend renders a basic React shell ready for product development.
+
+## Technical decision summary
+
+The repository still follows the original product direction:
+
+- Phase 1 prototype used static HTML and localStorage
+- Phase 2 product is locked to Python + React + RAG
+- The current scaffold acts as the implementation starting point for that architecture
+
+---
+
+`frontend/` and `backend/` are independent projects with their own dependencies and run commands — see each folder's own README/setup once scaffolded.
+
+## Status
+
+Currently transitioning from a static HTML/JS clickable prototype (localStorage-based, simulated auth/chat) into a real Python + React + RAG product. See the Technical Decision Document below for what's locked in and what's still open.
+
+---
+
+## Technical Decision Document — Company Knowledge Assistant
+
+**Status:** Draft v1 — Phase 1 (prototype) decisions are final and already built. Phase 2 (product) stack is locked as Python + React + RAG. Everything marked "open" is genuinely undecided.
+
+### 1. Phases
+
+**Phase 1 — Prototype (done, unchanged)**
+Static HTML/CSS/vanilla JS, 3 pages, `localStorage` as the only data store, auth/email/notifications simulated client-side. Purpose: validate flows and UX before writing real infrastructure. Not being touched or re-decided.
+
+**Phase 2 — Product (locked direction, being built now)**
+- Backend: **Python**
+- Frontend: **React**
+- Knowledge base / chat answering: **RAG pipeline** (retrieval-augmented generation) — replaces the simulated chat logic with real retrieval over uploaded documents + an LLM call, grounded answers with real citations, and gap detection driven by retrieval confidence rather than a hardcoded demo branch.
+
+### 2. Why this split
+The prototype exists to prove the UX (role gating, sector-scoped uploads, chat-across-all-sectors, gap flagging, admin assignment) is right before paying the cost of a real backend and a real retrieval pipeline. Phase 2 keeps every UX decision from Phase 1 — it's a re-platforming, not a redesign.
+
+### 3. What Phase 2 replaces, 1:1
+
+| Prototype (Phase 1) | Product (Phase 2) |
+|---|---|
+| `localStorage` for Users/Documents/Gaps/Session | Real database, served via a Python API |
+| Simulated login (no real check) | Real auth against the Python backend |
+| Simulated chat answer logic | RAG pipeline: embed docs → retrieve → LLM answers with citations |
+| Simulated "gap detected" branch | Retrieval-confidence threshold decides gap vs. answer |
+| Simulated toast "email sent" | Real notification (channel TBD — see open decisions) |
+| 3 static HTML files | React app calling the Python API |
+
+### 4. Decisions explicitly NOT being made right now
+- Still exactly 2 roles (user, superAdmin) — no third role introduced by the backend split.
+- Still the same fixed sector list + "Other" custom sector.
+- Still no separate "pending" page — same modal-based flow.
+- Screen set stays at 3 (signup/login, user dashboard, admin dashboard) unless stated otherwise.
+
+### 5. Open decisions (deliberately deferred, not assumed)
+- Python web framework (FastAPI is the common default for an API a React app + RAG pipeline both call, but not chosen yet)
+- Vector store for RAG (e.g. pgvector, Chroma, Pinecone)
+- LLM provider/model for generation
+- Embedding model
+- Primary database (e.g. Postgres)
+- Real auth mechanism (session vs JWT, etc.)
+- Real notification channel for "assigned" alerts (email service, in-app only, etc.)
+- Hosting/infra
+
+### 6. Migration path (high level)
+Prototype validates UX → Python API stands up real data model → React frontend replaces the 3 static HTML files, calling that API → RAG pipeline replaces simulated chat/gap logic → `localStorage` retired in favor of the real database.
