@@ -1,0 +1,6 @@
+DATABASE_URL=postgresql+psycopg://kwg:kwg@localhost:5432/kwg_assistant
+GEMINI_API_KEY=
+JWT_SECRET=
+JWT_EXPIRE_MINUTES=60
+RAG_SIMILARITY_FLOOR=0.55
+RAG_TOP_K=5

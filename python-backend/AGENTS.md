@@ -2,12 +2,14 @@
 
 ## Version History
 
-- Version: 0.1.0
+- Version: 0.1.2
 - Last updated: 2026-08-15
 - Status: Initial backend architecture and API plan draft
 
 ### Change log
 
+- v0.1.2: Added a "Local setup" section (Docker Postgres+pgvector command, `.env.example`, run steps); clarified that "Postgres" is a working default, not formally locked per root README's open decisions list.
+- v0.1.1: Notifications deferred out of MVP — dropped `notifications` table, router, service, and notification-trigger mentions from the active plan; moved to a new "Future plan" section.
 - v0.1.0: First draft — data model, API surface, and RAG/gap-detection flow, derived from `resources/docs/Specifications.md`, root `AGENTS.md`, root `README.md` technical decisions, and the prototype's data shapes.
 
 ---
@@ -19,7 +21,7 @@ This is the implementation plan for `python-backend/` only. Product intent and c
 ## Stack
 
 - **Framework:** FastAPI
-- **Database:** PostgreSQL (locked in root README technical decision doc)
+- **Database:** PostgreSQL — chosen for MVP because pgvector rides on the same instance; root README's technical decision doc still lists "primary database" as open, so treat this as the working default, not formally locked
 - **Vector storage:** `pgvector` extension on the same Postgres instance — no separate vector DB service for MVP. Revisit only if retrieval volume/latency actually demands it.
 - **Auth:** JWT (access token), passwords hashed with `bcrypt`/`passlib`
 - **LLM:** Gemini API (generation). Also used for embeddings unless latency/cost pushes us to a local embedding model later — open decision, not blocking.
@@ -47,7 +49,6 @@ python-backend/
       knowledge.py                # QA entry CRUD (sector-scoped)
       chat.py                      # ask question -> RAG answer
       gaps.py                       # list/assign knowledge gaps
-      notifications.py               # in-app notifications
     services/
       auth_service.py
       user_service.py
@@ -57,8 +58,7 @@ python-backend/
         retrieval.py                  # similarity search over QA entries
         generation.py                  # Gemini call, prompt construction
         gap_detection.py               # combines retrieval score + LLM signal -> is_gap
-      gap_service.py                 # gap lifecycle: create, assign, notify
-      notification_service.py
+      gap_service.py                 # gap lifecycle: create, assign
   requirements.txt
   .env.example
 ```
@@ -140,16 +140,7 @@ A `superAdmin` doesn't strictly need rows here (prototype used `sectors: ['all']
 | assigned_at | timestamptz, nullable | |
 | resolved_at | timestamptz, nullable | |
 
-### `notifications` (in-app only for MVP — root README leaves the real channel as an open decision)
-| column | type | notes |
-|---|---|---|
-| id | uuid/pk | |
-| user_id | fk -> users | recipient |
-| type | enum(`gap_assigned`, `access_granted`, `access_revoked`) | extend as needed |
-| message | text | |
-| related_gap_id | fk -> knowledge_gaps, nullable | |
-| is_read | boolean | default false |
-| created_at | timestamptz | |
+Notifications are skipped for MVP — see [Future plan](#future-plan-deferred-out-of-mvp).
 
 ---
 
@@ -173,7 +164,7 @@ All routes prefixed `/api/v1`. `Auth` column: `public` = no token, `user` = any 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/admin/users` | admin | List users. Query params: `status` (`pending`\|`granted`\|`revoked`), `sector` (sector key, optional per the "nice to have" filter). Response includes `granted: boolean`-style status plus sector list per user. |
-| PATCH | `/admin/users/{user_id}/access` | admin | Body `{ "status": "granted" \| "revoked" }`. Grant or revoke. Triggers an `access_granted`/`access_revoked` notification. |
+| PATCH | `/admin/users/{user_id}/access` | admin | Body `{ "status": "granted" \| "revoked" }`. Grant or revoke. |
 
 ### Knowledge base (QA entries — "My Knowledge Base")
 | Method | Path | Auth | Purpose |
@@ -193,13 +184,7 @@ Embedding generation for a new/edited entry happens synchronously in `knowledge_
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/admin/gaps` | admin | List gaps, filterable by `status`. |
-| POST | `/admin/gaps/{gap_id}/assign` | admin | Body `{ assigned_to_id, assigned_sector_id }`. Sets status `assigned`, creates a `gap_assigned` notification for that user. |
-
-### Notifications
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | `/notifications` | user | Current user's notifications, newest first. |
-| PATCH | `/notifications/{id}/read` | user | Mark read. |
+| POST | `/admin/gaps/{gap_id}/assign` | admin | Body `{ assigned_to_id, assigned_sector_id }`. Sets status `assigned`. |
 
 ---
 
@@ -250,6 +235,54 @@ This matches the root README's existing decision ("Retrieval-confidence threshol
 
 ---
 
+## Local setup
+
+Run Postgres with `pgvector` already enabled — no separate vector DB service needed.
+
+### Database (Docker, recommended)
+
+```bash
+docker run --name kwg-postgres \
+  -e POSTGRES_USER=kwg \
+  -e POSTGRES_PASSWORD=kwg \
+  -e POSTGRES_DB=kwg_assistant \
+  -p 5432:5432 \
+  -d pgvector/pgvector:pg16
+```
+
+Alternative: install Postgres natively and add the `pgvector` extension package for your OS/version instead of the Docker image.
+
+Either way, the extension itself is enabled once via SQL (make this the first Alembic migration, not a manual one-off step):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### `.env.example`
+
+```
+DATABASE_URL=postgresql://kwg:kwg@localhost:5432/kwg_assistant
+GEMINI_API_KEY=
+JWT_SECRET=
+JWT_EXPIRE_MINUTES=60
+RAG_SIMILARITY_FLOOR=0.55
+RAG_TOP_K=5
+```
+
+`GEMINI_API_KEY` is the only external API key required for MVP (Google AI Studio). `JWT_SECRET` is self-generated, e.g. `openssl rand -hex 32` — not an external key.
+
+### Run
+
+```bash
+cd python-backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+---
+
 ## Security notes specific to this backend
 
 - Sector ownership checks (`knowledge.py` create/delete) must happen server-side against `user_sectors`, never trust a sector_id the client claims — this is exactly the "Access-control risk" the spec calls out.
@@ -261,4 +294,7 @@ This matches the root README's existing decision ("Retrieval-confidence threshol
 
 - Embedding model: Gemini embeddings vs. a local model — start with Gemini for consistency with generation, revisit if latency/cost becomes an issue.
 - Whether `qa_entries` needs an edit endpoint (PATCH) beyond add/remove — not in the MVP user stories, add if requested.
-- Real notification delivery channel (email) — explicitly deferred per root README; `notifications` table is channel-agnostic so adding email later is a new dispatch step, not a schema change.
+
+## Future plan (deferred, out of MVP)
+
+- **Notifications** — skipped for MVP. When picked back up: `notifications` table (`id`, `user_id`, `type` enum `gap_assigned`/`access_granted`/`access_revoked`, `message`, `related_gap_id` nullable, `is_read`, `created_at`), a `notifications.py` router (`GET /notifications`, `PATCH /notifications/{id}/read`), a `notification_service.py`, and dispatch calls from the access-grant/revoke and gap-assign flows. In-app only to start; real delivery channel (email) stays an open decision per root README.
