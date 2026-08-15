@@ -30,9 +30,9 @@ FIXED_SECTORS = [
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
-    user_role = pg.ENUM("user", "superAdmin", name="user_role")
-    user_status = pg.ENUM("pending", "granted", "revoked", name="user_status")
-    gap_status = pg.ENUM("open", "assigned", "resolved", name="gap_status")
+    user_role = pg.ENUM("user", "superAdmin", name="user_role", create_type=False)
+    user_status = pg.ENUM("pending", "granted", "revoked", name="user_status", create_type=False)
+    gap_status = pg.ENUM("open", "assigned", "resolved", name="gap_status", create_type=False)
     user_role.create(op.get_bind())
     user_status.create(op.get_bind())
     gap_status.create(op.get_bind())

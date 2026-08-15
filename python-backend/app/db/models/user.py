@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, String, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -39,3 +40,4 @@ class User(Base):
     )
 
     user_sectors: Mapped[list["UserSector"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    sectors: AssociationProxy[list["Sector"]] = association_proxy("user_sectors", "sector")

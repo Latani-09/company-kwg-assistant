@@ -7,6 +7,12 @@ This repository is set up as a two-part application scaffold:
 
 ## Quick start
 
+### Prerequisites
+
+- PostgreSQL must be installed and running locally (setup commands are OS-specific — Ubuntu/Debian uses `apt`, macOS typically uses `brew`, etc.).
+- The `pgvector` extension must be installed for your PostgreSQL version (e.g. `postgresql-<version>-pgvector` on Ubuntu/Debian) and enabled on the target database by a superuser before running migrations.
+- Create a `kwg` database role with password `kwg`, and a `kwg_assistant` database owned by that role (see `python-backend/.env.example` for the expected connection string).
+
 ### Backend
 
 ```bash
