@@ -2,12 +2,13 @@
 
 ## Version History
 
-- Version: 0.1.0
-- Last updated: 2026-08-15
+- Version: 0.2.0
+- Last updated: 2026-08-26
 - Status: Initial project operating guide and repository conventions draft
 
 ### Change log
 
+- v0.2.0: Added BACKLOG.md and DEPLOYMENT.md references to the repo structure.
 - v0.1.0: Initial AGENTS.md created with project overview, repo structure, product direction, workflow expectations, and resources folder conventions.
 
 ---
@@ -108,6 +109,8 @@ This repository is structured as:
 - `react-app/` — React frontend
 - `resources/` — design prototypes, HTML mockups, research notes, screenshots, and supporting product documents
 - `README.md` — project overview and current product direction
+- `BACKLOG.md` — prioritized task list for the team (gaps found in the app, broken down with priorities)
+- `DEPLOYMENT.md` — free-tier deployment options and setup outline for backend, frontend, and database
 
 ## Product direction
 
