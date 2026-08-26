@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     rag_similarity_floor: float = 0.55
     rag_top_k: int = 5
 
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    smtp_from_email: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

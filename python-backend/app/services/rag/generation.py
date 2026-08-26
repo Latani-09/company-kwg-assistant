@@ -6,7 +6,7 @@ from google.genai import types
 from app.core.config import get_settings
 from app.db.models.qa_entry import QAEntry
 
-GENERATION_MODEL = "gemini-2.0-flash"
+GENERATION_MODEL = "gemini-3.6-flash"
 
 SYSTEM_PROMPT = (
     "You are a company knowledge assistant. Answer the user's question using ONLY the "

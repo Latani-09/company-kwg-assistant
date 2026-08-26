@@ -29,7 +29,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 cd react-app
-nvm use          # picks up .nvmrc (Node 20.20.2)
+nvm use 20         # picks up .nvmrc (Node 20.20.2)
 cp .env.example .env   # VITE_API_BASE_URL, defaults to the backend above
 npm install
 npm run dev -- --host 0.0.0.0

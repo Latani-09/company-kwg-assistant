@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { askQuestion } from "../api/chat";
 import { createEntry, deleteEntry, listEntries } from "../api/knowledge";
+import { listSectors } from "../api/sectors";
 import type { ChatSource, QAEntry, Sector } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
 import { AppHeader } from "../components/AppHeader";
@@ -18,7 +19,19 @@ let messageId = 0;
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const sectors: Sector[] = user?.sectors ?? [];
+  const isSuperAdmin = user?.role === "superAdmin";
+  const [allSectors, setAllSectors] = useState<Sector[]>([]);
+
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    listSectors()
+      .then(setAllSectors)
+      .catch(() => setAllSectors([]));
+  }, [isSuperAdmin]);
+
+  // SuperAdmins have update access to every sector, not just ones they're assigned to.
+  const sectors: Sector[] = isSuperAdmin ? allSectors : user?.sectors ?? [];
+  const showKnowledgeBase = sectors.length > 0;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -40,6 +53,12 @@ export function DashboardPage() {
   const [docContent, setDocContent] = useState("");
   const [docSource, setDocSource] = useState("");
   const [savingDoc, setSavingDoc] = useState(false);
+
+  useEffect(() => {
+    if (!activeSectorId && sectors.length > 0) {
+      setActiveSectorId(sectors[0].id);
+    }
+  }, [sectors, activeSectorId]);
 
   useEffect(() => {
     if (!activeSectorId) {
@@ -214,6 +233,7 @@ export function DashboardPage() {
           </div>
         </section>
 
+        {showKnowledgeBase && (
         <section className="w-full md:w-[400px] lg:w-[450px] flex flex-col gap-md h-full overflow-hidden">
           <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] flex-shrink-0">
             <h3 className="font-h3 text-h3 text-primary mb-xs">My Knowledge Base</h3>
@@ -292,6 +312,7 @@ export function DashboardPage() {
             )}
           </div>
         </section>
+        )}
       </main>
 
       <Modal open={addDocOpen} onClose={() => setAddDocOpen(false)}>

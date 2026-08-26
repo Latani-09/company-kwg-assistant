@@ -6,7 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.db.models.chat_query import ChatQuery
 from app.db.models.knowledge_gap import GapStatus, KnowledgeGap
+from app.db.models.sector import Sector
+from app.db.models.user import User
 from app.schemas.gap import GapAssignRequest
+from app.services.mail_service import send_email
 
 
 def create_gap(db: Session, chat_query: ChatQuery) -> KnowledgeGap:
@@ -39,4 +42,20 @@ def assign_gap(db: Session, gap_id: uuid.UUID, payload: GapAssignRequest) -> Kno
     gap.assigned_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(gap)
+
+    assignee = db.get(User, gap.assigned_to_id)
+    sector = db.get(Sector, gap.assigned_sector_id)
+    if assignee is not None:
+        send_email(
+            to=assignee.email,
+            subject="A knowledge gap has been assigned to you",
+            body=(
+                f"Hi {assignee.name},\n\n"
+                f"You have been assigned a knowledge gap in the "
+                f"{sector.label if sector else 'assigned'} sector:\n\n"
+                f'"{gap.question_text}"\n\n'
+                "Please add a Q&A entry to close this gap."
+            ),
+        )
+
     return gap
