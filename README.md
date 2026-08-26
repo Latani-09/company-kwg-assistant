@@ -1,9 +1,9 @@
 # Company Knowledge Assistant
 
-This repository is set up as a two-part application scaffold:
+This repository is set up as a two-part application:
 
-- backend/: Python FastAPI API
-- frontend/: React + Vite frontend
+- `python-backend/`: Python FastAPI API
+- `react-app/`: React + Vite frontend
 
 ## Quick start
 
@@ -12,21 +12,25 @@ This repository is set up as a two-part application scaffold:
 - PostgreSQL must be installed and running locally (setup commands are OS-specific — Ubuntu/Debian uses `apt`, macOS typically uses `brew`, etc.).
 - The `pgvector` extension must be installed for your PostgreSQL version (e.g. `postgresql-<version>-pgvector` on Ubuntu/Debian) and enabled on the target database by a superuser before running migrations.
 - Create a `kwg` database role with password `kwg`, and a `kwg_assistant` database owned by that role (see `python-backend/.env.example` for the expected connection string).
+- Node 20+ for the frontend (`react-app/.nvmrc` pins 20.20.2 via `nvm use`) — an older system-wide Node won't run the current Vite toolchain.
 
 ### Backend
 
 ```bash
-cd backend
+cd python-backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
+cd react-app
+nvm use          # picks up .nvmrc (Node 20.20.2)
+cp .env.example .env   # VITE_API_BASE_URL, defaults to the backend above
 npm install
 npm run dev -- --host 0.0.0.0
 ```
@@ -35,7 +39,7 @@ Open the app at http://localhost:5173 and the API at http://localhost:8000.
 
 ## Project status
 
-The workspace now contains a runnable scaffold for the Company Knowledge Assistant product. The backend exposes a health endpoint and sample knowledge data, while the frontend renders a basic React shell ready for product development.
+The backend exposes the full `/api/v1` surface (auth, sectors, admin users, knowledge, chat, gaps) backed by PostgreSQL + pgvector. The React app (`react-app/`) re-platforms all 3 prototype screens — signup/login, user dashboard, admin dashboard — wired to that real API; see `react-app/AGENTS.md` for the frontend's specific technical decisions.
 
 ## Technical decision summary
 
@@ -47,7 +51,7 @@ The repository still follows the original product direction:
 
 ---
 
-`frontend/` and `backend/` are independent projects with their own dependencies and run commands — see each folder's own README/setup once scaffolded.
+`react-app/` and `python-backend/` are independent projects with their own dependencies and run commands — see each folder's own AGENTS.md for setup/decisions.
 
 ## Status
 
