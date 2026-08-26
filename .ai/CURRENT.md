@@ -22,11 +22,14 @@ This document tracks what's been requested and verified in the Company Knowledge
 - Change the seeded `admin` password to something known/managed (explicitly deferred — "i will update it later").
 - No seed data beyond the fixed sector list and the one admin user.
 
-### React app generation
+### React app generation (2026-08-26)
 
-- `react-app/` is currently an empty scaffold (just `AGENTS.md`, no implementation).
-- Prototype to build from: [`resources/prototypes/knowledge-assistant_grp7final.html`](../resources/prototypes/knowledge-assistant_grp7final.html) (static HTML/localStorage prototype — see [`resources/docs/Specifications.md`](../resources/docs/Specifications.md)).
-- Not started yet: re-platform the 3 prototype screens (signup/login, user dashboard, admin dashboard) into React, wired to the real `/api/v1` backend instead of `localStorage`.
+- Built. `react-app/` is now a Vite + React 18 + TypeScript + Tailwind app (see [`react-app/AGENTS.md`](../react-app/AGENTS.md) for the frontend-specific technical decisions: stack, routing, auth, the gaps-assignment deviation from the prototype).
+- Re-platformed all 3 prototype screens 1:1 in UX from [`resources/prototypes/knowledge-assistant_grp7final.html`](../resources/prototypes/knowledge-assistant_grp7final.html): `/` (login/signup), `/dashboard` (chat + My Knowledge Base), `/admin` (User Management + Knowledge Gaps) — all wired to the real `/api/v1` backend instead of `localStorage`.
+- Verified end-to-end in a headless browser against the live backend: signup → pending modal → admin grant → granted-user login → sector-scoped KB tabs → add/delete a knowledge doc → unmatched chat question → gap logged → admin assigns gap (sector then SME selects) → gap drops off the open list.
+- Bug found and fixed along the way: `GET/PATCH /api/v1/admin/users` 500'd (`AdminUserOut.model_validate` required `granted` before the follow-up `.model_copy()` could set it — Pydantic validates first). Fixed in [`admin_users.py`](../python-backend/app/routers/admin_users.py) by validating against `UserOut` first, then constructing `AdminUserOut` with `granted` supplied directly. This was blocking the Admin Users screen entirely; now confirmed working.
+- For local testing, the seeded admin's password was reset to a known value (`TestAdmin123!`, via `passlib`'s hash + direct SQL update) since the original migration-time random password was never captured. Change it again before any real use — this repo's DB now also has a handful of test signups/gaps/docs from that verification pass that can be cleared out if you want a clean slate.
+- Not done: automated tests (none were added — verification was manual/browser-driven only), and the backend's `/api/v1/admin/users` and `/api/v1/admin/gaps` have no server-side text search — the frontend filters/searches client-side instead.
 
 ### Remaining API checks (not yet verified against the running backend)
 
