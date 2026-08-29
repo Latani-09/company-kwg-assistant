@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import * as adminUsersApi from "../api/adminUsers";
 import * as gapsApi from "../api/gaps";
 import { listSectors } from "../api/sectors";
-import type { AdminUser, Gap, Sector, UserStatus } from "../api/types";
+import type { AdminUser, Gap, GapStatus, Sector, UserStatus } from "../api/types";
 import { AppHeader } from "../components/AppHeader";
 import { useToast } from "../components/Toast";
 
 type AdminTab = "users" | "gaps";
 type StatusFilter = "all" | UserStatus;
+type GapStatusFilter = "all" | GapStatus;
 
 export function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("users");
@@ -18,22 +19,28 @@ export function AdminPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
+  const [gapStatusFilter, setGapStatusFilter] = useState<GapStatusFilter>("open");
 
   function reloadUsers() {
     adminUsersApi.listUsers().then(setUsers);
   }
 
-  function reloadGaps() {
-    gapsApi.listGaps("open").then(setGaps);
+  function reloadGaps(filter: GapStatusFilter = gapStatusFilter) {
+    gapsApi.listGaps(filter === "all" ? undefined : filter).then(setGaps);
   }
 
   useEffect(() => {
     reloadUsers();
     listSectors().then(setSectors);
-    reloadGaps();
   }, []);
 
+  useEffect(() => {
+    reloadGaps(gapStatusFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gapStatusFilter]);
+
   const usersById = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
+  const sectorsById = useMemo(() => new Map(sectors.map((s) => [s.id, s])), [sectors]);
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -56,9 +63,27 @@ export function AdminPage() {
 
   async function handleAssign(gapId: string, sectorId: string, assignedToId: string) {
     const assignee = usersById.get(assignedToId);
-    await gapsApi.assignGap(gapId, { assigned_sector_id: sectorId, assigned_to_id: assignedToId });
-    setGaps((prev) => prev.filter((g) => g.id !== gapId));
+    const updated = await gapsApi.assignGap(gapId, { assigned_sector_id: sectorId, assigned_to_id: assignedToId });
+    setGaps((prev) => {
+      // If the current filter no longer matches the gap's new status, drop it from view;
+      // otherwise update it in place so it stays visible with its new status.
+      if (gapStatusFilter !== "all" && updated.status !== gapStatusFilter) {
+        return prev.filter((g) => g.id !== gapId);
+      }
+      return prev.map((g) => (g.id === gapId ? updated : g));
+    });
     showToast(`Notified ${assignee?.name ?? "user"} by email`);
+  }
+
+  async function handleResolve(gapId: string) {
+    const updated = await gapsApi.resolveGap(gapId);
+    setGaps((prev) => {
+      if (gapStatusFilter !== "all" && updated.status !== gapStatusFilter) {
+        return prev.filter((g) => g.id !== gapId);
+      }
+      return prev.map((g) => (g.id === gapId ? updated : g));
+    });
+    showToast("Knowledge gap marked as resolved");
   }
 
   return (
@@ -111,6 +136,21 @@ export function AdminPage() {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
+              </div>
+            )}
+
+            {tab === "gaps" && (
+              <div className="flex items-center gap-sm">
+                <select
+                  className="bg-surface-container-lowest border border-outline-variant rounded-lg px-sm py-[6px] font-small text-small focus:outline-none focus:border-secondary"
+                  value={gapStatusFilter}
+                  onChange={(e) => setGapStatusFilter(e.target.value as GapStatusFilter)}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="open">Open</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="resolved">Resolved</option>
+                </select>
               </div>
             )}
           </div>
@@ -196,7 +236,9 @@ export function AdminPage() {
             <div className="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col min-h-[500px]">
               <div className="px-md py-sm border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
                 <h2 className="font-h3 text-h3 text-primary">Flagged Knowledge Gaps</h2>
-                <span className="bg-[#F1F5F9] text-[#64748B] font-label text-label px-sm py-xs rounded">Requires Action</span>
+                <span className="bg-[#F1F5F9] text-[#64748B] font-label text-label px-sm py-xs rounded">
+                  {gaps.filter((g) => g.status === "open").length} open
+                </span>
               </div>
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-left border-collapse">
@@ -210,6 +252,9 @@ export function AdminPage() {
                       </th>
                       <th className="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Sector</th>
                       <th className="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider">Assign To</th>
+                      <th className="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider text-center">
+                        Status
+                      </th>
                       <th className="py-sm px-md font-label text-label text-on-surface-variant uppercase tracking-wider text-right">
                         Action
                       </th>
@@ -221,15 +266,18 @@ export function AdminPage() {
                         key={gap.id}
                         gap={gap}
                         sectors={sectors}
+                        sectorsById={sectorsById}
                         asker={usersById.get(gap.asker_id)}
+                        assignee={gap.assigned_to_id ? usersById.get(gap.assigned_to_id) : undefined}
                         onAssign={handleAssign}
+                        onResolve={handleResolve}
                         showToast={showToast}
                       />
                     ))}
                     {gaps.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-lg px-md text-center text-on-surface-variant font-small text-small">
-                          No open knowledge gaps.
+                        <td colSpan={6} className="py-lg px-md text-center text-on-surface-variant font-small text-small">
+                          No knowledge gaps{gapStatusFilter !== "all" ? ` with status "${gapStatusFilter}"` : ""}.
                         </td>
                       </tr>
                     )}
@@ -247,16 +295,32 @@ export function AdminPage() {
 interface GapRowProps {
   gap: Gap;
   sectors: Sector[];
+  sectorsById: Map<string, Sector>;
   asker: AdminUser | undefined;
+  assignee: AdminUser | undefined;
   onAssign: (gapId: string, sectorId: string, assignedToId: string) => Promise<void>;
+  onResolve: (gapId: string) => Promise<void>;
   showToast: (message: string) => void;
 }
 
-function GapRow({ gap, sectors, asker, onAssign, showToast }: GapRowProps) {
+const GAP_STATUS_STYLES: Record<GapStatus, string> = {
+  open: "text-[#564427] bg-[#fadfb8]/40",
+  assigned: "text-secondary bg-secondary/10",
+  resolved: "text-[#166534] bg-[#dcfce7]",
+};
+
+const GAP_STATUS_LABELS: Record<GapStatus, string> = {
+  open: "Open",
+  assigned: "Assigned",
+  resolved: "Resolved",
+};
+
+function GapRow({ gap, sectors, sectorsById, asker, assignee, onAssign, onResolve, showToast }: GapRowProps) {
   const [sectorId, setSectorId] = useState("");
   const [assignedToId, setAssignedToId] = useState("");
   const [smeOptions, setSmeOptions] = useState<AdminUser[]>([]);
   const [assigning, setAssigning] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
     if (!sectorId) {
@@ -283,6 +347,18 @@ function GapRow({ gap, sectors, asker, onAssign, showToast }: GapRowProps) {
     }
   }
 
+  async function handleResolveClick() {
+    setResolving(true);
+    try {
+      await onResolve(gap.id);
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  const assignedSector = gap.assigned_sector_id ? sectorsById.get(gap.assigned_sector_id) : undefined;
+  const isOpen = gap.status === "open";
+
   return (
     <tr className="hover:bg-surface-container-low/30 transition-colors">
       <td className="py-md px-md">
@@ -290,42 +366,69 @@ function GapRow({ gap, sectors, asker, onAssign, showToast }: GapRowProps) {
       </td>
       <td className="py-md px-md text-on-surface-variant align-top">{asker?.name ?? "—"}</td>
       <td className="py-md px-md align-top">
-        <select
-          className="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full"
-          value={sectorId}
-          onChange={(e) => setSectorId(e.target.value)}
-        >
-          <option value="">Select sector...</option>
-          {sectors.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        {isOpen ? (
+          <select
+            className="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full"
+            value={sectorId}
+            onChange={(e) => setSectorId(e.target.value)}
+          >
+            <option value="">Select sector...</option>
+            {sectors.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="text-on-surface-variant">{assignedSector?.label ?? "—"}</span>
+        )}
       </td>
       <td className="py-md px-md align-top">
-        <select
-          className="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full"
-          value={assignedToId}
-          onChange={(e) => setAssignedToId(e.target.value)}
-          disabled={!sectorId}
-        >
-          <option value="">Select SME...</option>
-          {smeOptions.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
+        {isOpen ? (
+          <select
+            className="bg-surface border border-outline-variant rounded px-sm py-xs font-small text-small focus:outline-none focus:border-secondary w-full"
+            value={assignedToId}
+            onChange={(e) => setAssignedToId(e.target.value)}
+            disabled={!sectorId}
+          >
+            <option value="">Select SME...</option>
+            {smeOptions.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="text-on-surface-variant">{assignee?.name ?? "—"}</span>
+        )}
       </td>
-      <td className="py-md px-md text-right align-top">
-        <button
-          className="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors disabled:opacity-60"
-          onClick={handleAssignClick}
-          disabled={assigning}
+      <td className="py-md px-md text-center align-top">
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded-full font-label text-label ${GAP_STATUS_STYLES[gap.status]}`}
         >
-          Assign
-        </button>
+          {GAP_STATUS_LABELS[gap.status]}
+        </span>
+      </td>
+      <td className="py-md px-md text-right align-top whitespace-nowrap">
+        {gap.status === "open" && (
+          <button
+            className="bg-secondary text-white px-md py-xs rounded font-small text-small hover:bg-secondary/90 transition-colors disabled:opacity-60"
+            onClick={handleAssignClick}
+            disabled={assigning}
+          >
+            {assigning ? "Assigning…" : "Assign"}
+          </button>
+        )}
+        {gap.status === "assigned" && (
+          <button
+            className="border border-outline-variant text-primary hover:bg-surface-container-low px-md py-xs rounded font-small text-small transition-colors disabled:opacity-60 whitespace-nowrap"
+            onClick={handleResolveClick}
+            disabled={resolving}
+          >
+            {resolving ? "Resolving…" : "Resolve"}
+          </button>
+        )}
+        {gap.status === "resolved" && <span className="text-on-surface-variant">—</span>}
       </td>
     </tr>
   );

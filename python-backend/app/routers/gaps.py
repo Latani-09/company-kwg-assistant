@@ -3,9 +3,10 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.deps import require_admin
+from app.core.deps import get_current_user, require_admin
 from app.db.base import get_db
 from app.db.models.knowledge_gap import GapStatus
+from app.db.models.user import User
 from app.schemas.gap import GapAssignRequest, GapOut
 from app.services import gap_service
 
@@ -20,3 +21,12 @@ def list_gaps(status: GapStatus | None = None, db: Session = Depends(get_db)):
 @router.post("/{gap_id}/assign", response_model=GapOut)
 def assign_gap(gap_id: uuid.UUID, payload: GapAssignRequest, db: Session = Depends(get_db)):
     return gap_service.assign_gap(db, gap_id, payload)
+
+
+@router.post("/{gap_id}/resolve", response_model=GapOut)
+def resolve_gap(
+    gap_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return gap_service.resolve_gap(db, gap_id, current_user)

@@ -8,3 +8,7 @@ export function listGaps(status?: GapStatus): Promise<Gap[]> {
 export function assignGap(gapId: string, payload: GapAssignRequest): Promise<Gap> {
   return apiFetch<Gap>(`/admin/gaps/${gapId}/assign`, { method: "POST", body: payload });
 }
+
+export function resolveGap(gapId: string): Promise<Gap> {
+  return apiFetch<Gap>(`/admin/gaps/${gapId}/resolve`, { method: "POST" });
+}
