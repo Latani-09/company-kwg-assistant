@@ -8,6 +8,7 @@ from app.db.models.qa_entry import QAEntry
 from app.db.models.user import User, UserRole
 from app.db.models.user_sector import UserSector
 from app.schemas.knowledge import QAEntryCreate
+from app.services import gap_service
 from app.services.rag.embeddings import embed_text
 
 logger = logging.getLogger(__name__)
@@ -47,9 +48,12 @@ def create_entry(db: Session, user: User, payload: QAEntryCreate) -> QAEntry:
     db.refresh(entry)
 
     if payload.gap_id is not None:
-        # Real status transition lands with the gap-resolution workflow;
-        # log for now so the deep-link flow is traceable end to end.
-        logger.info("Gap %s resolved via QA entry %s", payload.gap_id, entry.id)
+        # Resolving the gap is a side effect of the entry we already saved,
+        # so a stale/already-resolved gap_id shouldn't fail this request.
+        try:
+            gap_service.resolve_gap(db, payload.gap_id, user)
+        except HTTPException as exc:
+            logger.warning("Could not resolve gap %s for QA entry %s: %s", payload.gap_id, entry.id, exc.detail)
 
     return entry
 
