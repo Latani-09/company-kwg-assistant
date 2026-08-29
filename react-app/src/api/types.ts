@@ -60,6 +60,7 @@ export interface QAEntryCreate {
   question: string;
   answer: string;
   source?: string | null;
+  gap_id?: string | null;
 }
 
 export interface ChatSource {

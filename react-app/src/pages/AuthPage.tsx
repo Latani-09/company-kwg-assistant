@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { SectorChips } from "../components/SectorChips";
 import type { SignupSectorInput } from "../api/types";
@@ -9,6 +9,8 @@ type StatusModal = { kind: "pending" | "revoked" } | null;
 
 export function AuthPage() {
   const { user, login, signup } = useAuth();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
   const [tab, setTab] = useState<Tab>("login");
   const [statusModal, setStatusModal] = useState<StatusModal>(null);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
@@ -25,7 +27,7 @@ export function AuthPage() {
   const [signupSectors, setSignupSectors] = useState<SignupSectorInput[]>([]);
   const [signupBusy, setSignupBusy] = useState(false);
 
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to={from ?? "/dashboard"} replace />;
 
   function switchTab(next: Tab) {
     setTab(next);
