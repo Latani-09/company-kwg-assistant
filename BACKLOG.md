@@ -53,7 +53,7 @@ Q&A entry" with no way to get there directly.
 See [resources/docs/Testing.md](resources/docs/Testing.md) for the test strategy, isolation rules,
 coverage priorities, and local commands.
 
-Backend harness and auth-service tests now exist; the remaining test work is broken down below so it is not one
+Backend and frontend harnesses plus backend service tests now exist; the remaining test work is broken down below so it is not one
 giant task:
 
 ### Backend (pytest)
@@ -70,10 +70,9 @@ giant task:
 - [x] P2 — Router-level tests for auth guards (`require_admin`, `get_current_user`) returning 401/403.
 
 ### Frontend (Vitest + React Testing Library)
-- [ ] P2 — Test harness: add `vitest`, `@testing-library/react`, `jsdom` to `react-app`, wire an `npm test`
+- [x] P2 — Test harness: add `vitest`, `@testing-library/react`, `jsdom` to `react-app`, wire an `npm test`
       script.
-- [ ] P2 — `Authervice`: create on chat miss, assign (status/timestamps update, email attempted), the new
-      resolve paContext` (login/signup/logout state transitions).
+- [ ] P2 — `AuthContext`: login/signup/logout state transitions.
 - [ ] P2 — `SectorChips` (toggle selection, "Other" free-text, payload shape).
 - [ ] P3 — `DashboardPage` (superAdmin sees all sectors, doc add/delete flow) and `AdminPage` (gap
       assign flow, user grant/revoke).
@@ -81,5 +80,4 @@ giant task:
 ### CI
 - [ ] P2 — GitHub Actions workflow running both suites on PRs to `main` once the harnesses above exist.
 
-**Suggested order:** backend harness → backend service tests → CI wired to at least the backend suite →
-frontend harness → frontend tests.
+**Suggested order:** backend harness → backend service tests → frontend harness → frontend tests → CI.

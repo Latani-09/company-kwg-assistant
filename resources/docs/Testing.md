@@ -6,7 +6,7 @@ This document defines the test strategy for Company Knowledge Assistant as the p
 
 ## Current baseline
 
-- The backend harness, service tests, and router guard tests are now in place; frontend coverage and CI remain pending.
+- The backend harness, service tests, router guard tests, and frontend harness are now in place; frontend coverage and CI remain pending.
 - Backend tests will use `pytest`, `pytest-asyncio`, `httpx`, and FastAPI's test client.
 - Frontend tests will use Vitest with React Testing Library and `jsdom`.
 - External services must be mocked in tests: PostgreSQL/pgvector where practical, Gemini, and email delivery.
@@ -91,9 +91,9 @@ The component issue acceptance criteria also require:
 1. Add the backend test dependencies and pytest configuration.
 2. Build database and authentication fixtures.
 3. Add backend service tests for auth, knowledge, and gaps.
-4. Add CI for the backend suite.
-5. Add the frontend Vitest and React Testing Library harness.
-6. Add frontend component and flow tests.
+4. Add the frontend Vitest and React Testing Library harness.
+5. Add frontend component and flow tests.
+6. Add CI for both suites.
 7. Expand router, RAG, and CI coverage as features land.
 
 ## CI requirements
