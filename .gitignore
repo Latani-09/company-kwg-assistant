@@ -16,6 +16,7 @@ venv/
 react-app/node_modules/
 react-app/dist/
 react-app/.vite/
+package-lock.json
 
 # Editors
 .vscode/
