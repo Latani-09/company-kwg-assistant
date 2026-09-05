@@ -18,7 +18,8 @@ react-app/dist/
 react-app/.vite/
 react-app/test-results/
 react-app/playwright-report/
-package-lock.json
+/package-lock.json
+/python-backend/package-lock.json
 
 # Editors
 .vscode/
