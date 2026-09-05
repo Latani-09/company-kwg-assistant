@@ -10,6 +10,13 @@ Current limitation: pytest and Vitest verify application logic, but browser work
 accessibility, visual regressions, real email delivery, and real AI answer quality are not covered yet; we will
 use Playwright for the browser-level end-to-end coverage.
 
+The first Playwright smoke test is in `react-app/e2e/` and runs with:
+
+```bash
+cd react-app
+npm run test:e2e
+```
+
 ## Keeping Test Cases Current
 
 When adding or changing a feature:

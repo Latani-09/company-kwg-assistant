@@ -196,6 +196,15 @@ File: `react-app/src/test/admin-page.test.tsx`
 | Assign a knowledge gap | Normal flow | Sends sector and SME IDs and updates/removes the row according to the filter |
 | Change gap status filter | Normal flow | Refetches gaps with the selected status |
 
+### Playwright browser tests
+
+File: `react-app/e2e/auth.spec.ts`
+
+| Case | Category | Expected result |
+|---|---|---|
+| Open the auth page in Chromium | End-to-end | KnowledgeAssistant heading and login controls are visible |
+| Switch from login to signup | End-to-end | Signup fields and Request Access action are visible |
+
 ## Summary
 
 The suite is not limited to normal-flow testing. It combines normal flows with negative, authorization, validation, integration, and defensive cases. This is intentional: normal-flow tests prove the feature works, while the other categories protect security boundaries and failure behavior.

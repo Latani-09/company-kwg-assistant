@@ -16,6 +16,8 @@ venv/
 react-app/node_modules/
 react-app/dist/
 react-app/.vite/
+react-app/test-results/
+react-app/playwright-report/
 package-lock.json
 
 # Editors
