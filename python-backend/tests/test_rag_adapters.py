@@ -5,6 +5,28 @@ from app.db.models.qa_entry import EMBEDDING_DIM, QAEntry
 from app.services.rag import embeddings, gap_detection, generation, retrieval
 
 
+def test_embedding_client_is_created_from_settings(monkeypatch):
+    created = []
+    fake_client = object()
+    monkeypatch.setattr(embeddings, "_client", None)
+    monkeypatch.setattr(embeddings, "get_settings", lambda: SimpleNamespace(gemini_api_key="embedding-key"))
+    monkeypatch.setattr(embeddings.genai, "Client", lambda api_key: created.append(api_key) or fake_client)
+
+    assert embeddings._get_client() is fake_client
+    assert created == ["embedding-key"]
+
+
+def test_generation_client_is_created_from_settings(monkeypatch):
+    created = []
+    fake_client = object()
+    monkeypatch.setattr(generation, "_client", None)
+    monkeypatch.setattr(generation, "get_settings", lambda: SimpleNamespace(gemini_api_key="generation-key"))
+    monkeypatch.setattr(generation.genai, "Client", lambda api_key: created.append(api_key) or fake_client)
+
+    assert generation._get_client() is fake_client
+    assert created == ["generation-key"]
+
+
 def test_embed_text_calls_gemini_with_model_and_dimension(monkeypatch):
     calls = {}
 

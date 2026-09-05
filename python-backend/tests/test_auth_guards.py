@@ -70,3 +70,51 @@ def test_admin_route_allows_super_admin(client, db_session):
 
     assert response.status_code == 200
     assert response.json()[0]["username"] == admin.username
+
+
+def test_admin_gap_assign_returns_not_found_for_missing_gap(client, db_session, seeded_sector):
+    admin = add_admin(db_session)
+    token = create_access_token(admin.id)
+
+    response = client.post(
+        f"/api/v1/admin/gaps/{uuid4()}/assign",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"assigned_to_id": str(admin.id), "assigned_sector_id": str(seeded_sector.id)},
+    )
+
+    assert response.status_code == 404
+
+
+def test_admin_gap_resolve_returns_not_found_for_missing_gap(client, db_session):
+    admin = add_admin(db_session)
+    token = create_access_token(admin.id)
+
+    response = client.post(
+        f"/api/v1/admin/gaps/{uuid4()}/resolve",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+
+
+def test_signup_rejects_invalid_email_at_api_boundary(client):
+    response = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "name": "Invalid",
+            "email": "not-an-email",
+            "username": "invalid-email",
+            "password": "password",
+            "position": "Tester",
+            "sectors": [],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_sector_listing_returns_empty_collection(client):
+    response = client.get("/api/v1/sectors")
+
+    assert response.status_code == 200
+    assert response.json() == []

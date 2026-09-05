@@ -47,6 +47,14 @@ def test_create_gap_copies_chat_query_metadata(db_session, seeded_user):
     assert gap.id is not None
 
 
+def test_resolve_gap_rejects_missing_gap(db_session, seeded_user):
+    with pytest.raises(HTTPException) as error:
+        gap_service.resolve_gap(db_session, uuid4(), seeded_user)
+
+    assert error.value.status_code == 404
+    assert error.value.detail == "Gap not found"
+
+
 def test_assign_gap_updates_status_timestamps_and_sends_email(
     db_session, seeded_gap, seeded_sector, monkeypatch
 ):
@@ -67,6 +75,18 @@ def test_assign_gap_updates_status_timestamps_and_sends_email(
     assert len(sent) == 1
     assert sent[0]["to"] == assignee.email
     assert seeded_gap.question_text in sent[0]["body"]
+
+
+def test_assign_gap_rejects_missing_gap(db_session, seeded_sector, seeded_user):
+    with pytest.raises(HTTPException) as error:
+        gap_service.assign_gap(
+            db_session,
+            uuid4(),
+            GapAssignRequest(assigned_to_id=seeded_user.id, assigned_sector_id=seeded_sector.id),
+        )
+
+    assert error.value.status_code == 404
+    assert error.value.detail == "Gap not found"
 
 
 def test_resolve_gap_sets_status_timestamp_and_resolver(db_session, seeded_gap, seeded_user):
@@ -98,3 +118,7 @@ def test_auto_resolve_assigned_gaps_closes_matching_gaps(db_session, seeded_gap,
     assert [gap.id for gap in resolved] == [seeded_gap.id]
     assert resolved[0].status == GapStatus.resolved
     assert isinstance(resolved[0].resolved_at, datetime)
+
+
+def test_auto_resolve_assigned_gaps_returns_empty_when_no_match(db_session, seeded_user, seeded_sector):
+    assert gap_service.auto_resolve_assigned_gaps(db_session, seeded_user, seeded_sector.id) == []
