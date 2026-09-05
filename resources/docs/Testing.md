@@ -17,6 +17,34 @@ cd react-app
 npm run test:e2e
 ```
 
+## Playwright Plan
+
+Playwright covers real-browser workflows that Vitest and pytest cannot fully verify. Split the work by
+independent user journey so multiple contributors can work in parallel:
+
+- **Auth:** login, signup, pending/revoked messages, logout, and redirects.
+- **Knowledge:** assigned sectors, add entry, delete entry, and source metadata.
+- **Chat:** successful answers, citations, gap detection, and error states.
+- **Admin users:** user list, filters, grant, revoke, and confirmation dialogs.
+- **Admin gaps:** gap list, status filters, assignment, and resolution.
+- **Responsive/accessibility:** desktop/mobile layouts, keyboard navigation, focus, and basic accessibility.
+
+Use one spec area per journey under `react-app/e2e/`:
+
+```text
+e2e/auth/
+e2e/knowledge/
+e2e/chat/
+e2e/admin/
+e2e/accessibility/
+```
+
+Each contributor should own a separate spec area, update [TestCases.md](TestCases.md), and link the
+corresponding GitHub issue. Avoid simultaneous edits to `playwright.config.ts` and shared fixtures.
+Keep tests isolated, use stable user-facing locators, and attach traces/screenshots on CI failure.
+Playwright runs in CI after the frontend build with `npm run test:e2e`; Chromium is the first browser target,
+with Firefox and WebKit added later if cross-browser coverage is needed.
+
 ## Keeping Test Cases Current
 
 When adding or changing a feature:
