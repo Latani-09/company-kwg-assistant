@@ -78,6 +78,6 @@ giant task:
       assign flow, user grant/revoke).
 
 ### CI
-- [ ] P2 — GitHub Actions workflow running both suites on PRs to `main` once the harnesses above exist.
+- [x] P2 — GitHub Actions workflow running both suites on PRs to `main` once the harnesses above exist.
 
 **Suggested order:** backend harness → backend service tests → frontend harness → frontend tests → CI.
