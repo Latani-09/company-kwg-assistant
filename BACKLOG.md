@@ -72,9 +72,9 @@ giant task:
 ### Frontend (Vitest + React Testing Library)
 - [x] P2 — Test harness: add `vitest`, `@testing-library/react`, `jsdom` to `react-app`, wire an `npm test`
       script.
-- [ ] P2 — `AuthContext`: login/signup/logout state transitions.
-- [ ] P2 — `SectorChips` (toggle selection, "Other" free-text, payload shape).
-- [ ] P3 — `DashboardPage` (superAdmin sees all sectors, doc add/delete flow) and `AdminPage` (gap
+- [x] P2 — `AuthContext`: login/signup/logout state transitions.
+- [x] P2 — `SectorChips` (toggle selection, "Other" free-text, payload shape).
+- [x] P3 — `DashboardPage` (superAdmin sees all sectors, doc add/delete flow) and `AdminPage` (gap
       assign flow, user grant/revoke).
 
 ### CI

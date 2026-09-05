@@ -56,6 +56,10 @@ export function AdminPage() {
   }, [users, statusFilter, search]);
 
   async function handleAccessChange(userId: string, status: UserStatus) {
+    const targetUser = usersById.get(userId);
+    if (status === "revoked" && !window.confirm(`Revoke workspace access for ${targetUser?.name ?? "this user"}?`)) {
+      return;
+    }
     const updated = await adminUsersApi.updateAccess(userId, status);
     setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
     showToast(`Access ${status === "granted" ? "granted" : "revoked"} for ${updated.name}`);
