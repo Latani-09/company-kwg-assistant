@@ -48,13 +48,16 @@ Q&A entry" with no way to get there directly.
 
 ---
 
-## P1 — Test suite (currently zero tests in the repo)
+## P3 — Test suite (currently zero tests in the repo)
+
+See [resources/docs/Testing.md](resources/docs/Testing.md) for the test strategy, isolation rules,
+coverage priorities, and local commands.
 
 No `test_*.py`, `*.test.tsx`, or `*.spec.*` files exist anywhere. Breaking this down so it's not one
 giant task:
 
 ### Backend (pytest)
-- [ ] P1 — Test harness: `pytest` + `pytest-asyncio`/`httpx` `TestClient`, a throwaway SQLite or a
+- [x] P1 — Test harness: `pytest` + `pytest-asyncio`/`httpx` `TestClient`, a throwaway SQLite or a
       dockerized Postgres+pgvector fixture DB, fixtures for a seeded user/sector/gap.
 - [ ] P1 — `auth_service`: signup (dup email/username, sector resolution incl. "Other"), login (pending/
       revoked/bad password paths).
