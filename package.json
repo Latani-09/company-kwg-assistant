@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@oxlint/binding-win32-x64-msvc": "^1.80.0"
+  }
+}
