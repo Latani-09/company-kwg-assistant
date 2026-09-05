@@ -1,9 +1,11 @@
 import uuid
 from datetime import datetime, timezone
+from html import escape
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db.models.chat_query import ChatQuery
 from app.db.models.knowledge_gap import GapStatus, KnowledgeGap
 from app.db.models.sector import Sector
@@ -92,16 +94,38 @@ def assign_gap(db: Session, gap_id: uuid.UUID, payload: GapAssignRequest) -> Kno
     assignee = db.get(User, gap.assigned_to_id)
     sector = db.get(Sector, gap.assigned_sector_id)
     if assignee is not None:
+        sector_label = sector.label if sector else "assigned"
+        app_base_url = get_settings().app_base_url.rstrip("/")
+        deep_link = (
+            f"{app_base_url}/dashboard?sector={gap.assigned_sector_id}&gap={gap.id}&addDoc=1"
+            if app_base_url
+            else None
+        )
+
+        body_lines = [
+            f"Hi {assignee.name},",
+            "",
+            f"You have been assigned a knowledge gap in the {sector_label} sector:",
+            "",
+            f'"{gap.question_text}"',
+            "",
+            "Please add a Q&A entry to close this gap.",
+        ]
+        html_body = None
+        if deep_link:
+            body_lines += ["", deep_link]
+            html_body = (
+                f"<p>Hi {escape(assignee.name)},</p>"
+                f"<p>You have been assigned a knowledge gap in the <strong>{escape(sector_label)}</strong> sector:</p>"
+                f'<blockquote>{escape(gap.question_text)}</blockquote>'
+                f'<p><a href="{escape(deep_link)}">Add a Q&amp;A entry</a> to close this gap.</p>'
+            )
+
         send_email(
             to=assignee.email,
             subject="A knowledge gap has been assigned to you",
-            body=(
-                f"Hi {assignee.name},\n\n"
-                f"You have been assigned a knowledge gap in the "
-                f"{sector.label if sector else 'assigned'} sector:\n\n"
-                f'"{gap.question_text}"\n\n'
-                "Please add a Q&A entry to close this gap."
-            ),
+            body="\n".join(body_lines),
+            html_body=html_body,
         )
 
     return gap

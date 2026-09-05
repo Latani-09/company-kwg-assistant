@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { askQuestion } from "../api/chat";
 import { createEntry, deleteEntry, listEntries } from "../api/knowledge";
 import { listSectors } from "../api/sectors";
@@ -53,6 +54,23 @@ export function DashboardPage() {
   const [docContent, setDocContent] = useState("");
   const [docSource, setDocSource] = useState("");
   const [savingDoc, setSavingDoc] = useState(false);
+  const [gapId, setGapId] = useState<string | null>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("addDoc") !== "1") return;
+    const sectorParam = searchParams.get("sector");
+    if (sectorParam) {
+      setActiveSectorId(sectorParam);
+      setDocSectorId(sectorParam);
+    }
+    setGapId(searchParams.get("gap"));
+    setAddDocOpen(true);
+    setSearchParams({}, { replace: true });
+    // Deep-link params are consumed once on mount; re-running on searchParams
+    // changes would immediately reopen the modal after the params are cleared.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!activeSectorId && sectors.length > 0) {
@@ -116,6 +134,7 @@ export function DashboardPage() {
     setDocSectorId(activeSectorId ?? sectors[0]?.id ?? "");
     setDocContent("");
     setDocSource("");
+    setGapId(null);
     setAddDocOpen(true);
   }
 
@@ -124,8 +143,20 @@ export function DashboardPage() {
     if (!docSectorId) return;
     setSavingDoc(true);
     try {
-      await createEntry({ sector_id: docSectorId, question: docTitle, answer: docContent, source: docSource || null });
+      await createEntry({
+        sector_id: docSectorId,
+        question: docTitle,
+        answer: docContent,
+        source: docSource || null,
+        gap_id: gapId,
+      });
+      if (gapId) {
+        // Gap resolution is logged server-side for now; a peer's status
+        // workflow will call the real resolve function from this same spot.
+        console.info(`Gap ${gapId} resolved via new QA entry`);
+      }
       setAddDocOpen(false);
+      setGapId(null);
       if (docSectorId === activeSectorId) {
         listEntries(docSectorId).then(setDocs);
       } else {

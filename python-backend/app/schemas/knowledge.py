@@ -9,6 +9,7 @@ class QAEntryCreate(BaseModel):
     question: str
     answer: str
     source: str | None = None
+    gap_id: uuid.UUID | None = None
 
 
 class QAEntryOut(BaseModel):
