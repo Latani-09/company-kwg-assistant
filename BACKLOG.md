@@ -53,21 +53,21 @@ Q&A entry" with no way to get there directly.
 See [resources/docs/Testing.md](resources/docs/Testing.md) for the test strategy, isolation rules,
 coverage priorities, and local commands.
 
-No `test_*.py`, `*.test.tsx`, or `*.spec.*` files exist anywhere. Breaking this down so it's not one
+Backend harness and auth-service tests now exist; the remaining test work is broken down below so it is not one
 giant task:
 
 ### Backend (pytest)
 - [x] P1 — Test harness: `pytest` + `pytest-asyncio`/`httpx` `TestClient`, a throwaway SQLite or a
       dockerized Postgres+pgvector fixture DB, fixtures for a seeded user/sector/gap.
-- [ ] P1 — `auth_service`: signup (dup email/username, sector resolution incl. "Other"), login (pending/
+- [x] P1 — `auth_service`: signup (dup email/username, sector resolution incl. "Other"), login (pending/
       revoked/bad password paths).
-- [ ] P1 — `knowledge_service`: `_assert_sector_access` (superAdmin bypass vs. non-member 403), create/
+- [x] P1 — `knowledge_service`: `_assert_sector_access` (superAdmin bypass vs. non-member 403), create/
       delete entry.
-- [ ] P1 — `gap_service`: create on chat miss, assign (status/timestamps update, email attempted), the new
+- [x] P1 — `gap_service`: create on chat miss, assign (status/timestamps update, email attempted), the new
       resolve path once it exists.
-- [ ] P2 — `user_service` (admin list/filter, access update) and `chat_service`/RAG pipeline with the
+- [x] P2 — `user_service` (admin list/filter, access update) and `chat_service`/RAG pipeline with the
       Gemini client mocked (no live API calls in tests).
-- [ ] P2 — Router-level tests for auth guards (`require_admin`, `get_current_user`) returning 401/403.
+- [x] P2 — Router-level tests for auth guards (`require_admin`, `get_current_user`) returning 401/403.
 
 ### Frontend (Vitest + React Testing Library)
 - [ ] P2 — Test harness: add `vitest`, `@testing-library/react`, `jsdom` to `react-app`, wire an `npm test`

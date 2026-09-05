@@ -6,7 +6,7 @@ This document defines the test strategy for Company Knowledge Assistant as the p
 
 ## Current baseline
 
-- The backend harness and smoke test are now in place; service and frontend test coverage are still pending.
+- The backend harness, service tests, and router guard tests are now in place; frontend coverage and CI remain pending.
 - Backend tests will use `pytest`, `pytest-asyncio`, `httpx`, and FastAPI's test client.
 - Frontend tests will use Vitest with React Testing Library and `jsdom`.
 - External services must be mocked in tests: PostgreSQL/pgvector where practical, Gemini, and email delivery.
