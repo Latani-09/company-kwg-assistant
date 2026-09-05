@@ -4,6 +4,24 @@
 
 This document defines the test strategy for Company Knowledge Assistant as the project moves from prototype to product. Tests should protect the role model, sector access rules, knowledge workflows, chat and gap lifecycle, and the frontend's key user flows.
 
+See [TestCases.md](TestCases.md) for the implemented test-case inventory and expected results.
+
+Current limitation: pytest and Vitest verify application logic, but browser workflows, responsive behavior,
+accessibility, visual regressions, real email delivery, and real AI answer quality are not covered yet; we will
+use Playwright for the browser-level end-to-end coverage.
+
+## Keeping Test Cases Current
+
+When adding or changing a feature:
+
+1. Add or update the automated test in the relevant backend or frontend test file.
+2. Add the test case and expected result to [TestCases.md](TestCases.md), including its category.
+3. Update the related GitHub issue or [BACKLOG.md](../../BACKLOG.md) item.
+4. Run the focused test file, then the full suite before merging.
+
+Pull requests should mention the test cases added or changed. A test case should be removed from
+the inventory only when the corresponding behavior is intentionally removed from the product.
+
 ## Current baseline
 
 - The backend and frontend harnesses, component tests, and CI workflow are now in place.
