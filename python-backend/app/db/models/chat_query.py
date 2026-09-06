@@ -16,7 +16,7 @@ class ChatQuery(Base):
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
     answer_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     matched_entry_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("qa_entries.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("qa_entries.id", ondelete="SET NULL"), nullable=True
     )
     similarity_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_gap: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

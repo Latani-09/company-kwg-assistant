@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from app.db.models.chat_query import ChatQuery
 from app.db.models.qa_entry import QAEntry, EMBEDDING_DIM
 from app.db.models.user import User, UserRole, UserStatus
 from app.db.models.user_sector import UserSector
@@ -116,3 +117,25 @@ def test_delete_entry_rejects_non_owner_without_sector_access(db_session, seeded
 
     assert error.value.status_code == 403
     assert db_session.get(QAEntry, entry.id) is not None
+
+
+def test_delete_entry_nulls_matched_entry_id_on_past_chat_queries(
+    db_session, seeded_user, seeded_sector, monkeypatch
+):
+    assign_user_to_sector(db_session, seeded_user, seeded_sector)
+    monkeypatch.setattr(knowledge_service, "embed_text", lambda text, task_type=None: [0.1] * EMBEDDING_DIM)
+    entry = knowledge_service.create_entry(db_session, seeded_user, entry_payload(seeded_sector.id))
+
+    chat_query = ChatQuery(
+        id=uuid4(),
+        asker_id=seeded_user.id,
+        question_text="What is the product release process?",
+        matched_entry_id=entry.id,
+    )
+    db_session.add(chat_query)
+    db_session.commit()
+
+    knowledge_service.delete_entry(db_session, seeded_user, entry.id)
+
+    db_session.refresh(chat_query)
+    assert chat_query.matched_entry_id is None
