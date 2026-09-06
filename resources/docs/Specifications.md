@@ -36,7 +36,7 @@ The application solves this by combining a cross-sector question-answering chat 
 - SuperAdmin approval queue: grant or revoke access per signed-up user
 - Cross-sector AI chat with source citations on every answered response
 - Automatic knowledge-gap detection: unanswered questions are flagged with asker and timestamp for superAdmin review
-- Sector-scoped 'My Knowledge Base': users view tabs only for their assigned sectors and can add or remove documents (Question, Answer, Source) within those sectors
+- Sector-scoped 'My Knowledge Base': users view tabs only for their assigned sectors and can add or remove Q&A entries (Question, Answer, Source link) within those sectors — no document/file upload
 - SuperAdmin flagged-gaps queue with the ability to assign a gap to a specific user and trigger a simulated email notification
 
 ### 3.2 Overall Features
@@ -51,7 +51,7 @@ The application solves this by combining a cross-sector question-answering chat 
 
 ### 4.1 Scope
 
-This project delivers a company-wide knowledge assistant with two roles: an employee who can chat across every sector and manage documents only in their own assigned sectors, and a superAdmin who grants or revokes access and assigns unresolved questions. Employees sign up, select their sectors, and wait for approval before logging in. Once inside, they can ask questions and get cited answers pulled from the company's full knowledge base, and any question the system can't answer gets automatically flagged for the superAdmin to assign and resolve. The system runs on a Python backend with PostgreSQL as the database, a React frontend, real authentication, and a RAG pipeline that powers the chat's answers and citations. Single sign-on, analytics, real email notifications, and a document review workflow are not part of this delivery.
+This project delivers a company-wide knowledge assistant with two roles: an employee who can chat across every sector and manage Q&A entries (question, answer, source link — not uploaded documents) only in their own assigned sectors, and a superAdmin who grants or revokes access and assigns unresolved questions. Employees sign up, select their sectors, and wait for approval before logging in. Once inside, they can ask questions and get cited answers pulled from the company's full knowledge base, and any question the system can't answer gets automatically flagged for the superAdmin to assign and resolve. The system runs on a Python backend with PostgreSQL as the database, a React frontend, real authentication, and a RAG pipeline that powers the chat's answers and citations. Single sign-on, analytics, real email notifications, and a document review workflow are not part of this delivery.
 
 ### 4.2 Limitations
 
@@ -94,7 +94,7 @@ Development follows a lightweight iterative approach across two weeks, organized
 
 **Milestone 3 — Knowledge Management**
 - Sector management
-- Document management
+- Q&A entry management (question, answer, source link — no document upload)
 - Add/remove knowledge
 - Permission validation
 
