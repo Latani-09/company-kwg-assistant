@@ -64,7 +64,13 @@ def test_assert_sector_access_rejects_non_member(db_session, seeded_user, seeded
 def test_create_entry_persists_metadata_and_embedding(db_session, seeded_user, seeded_sector, monkeypatch):
     assign_user_to_sector(db_session, seeded_user, seeded_sector)
     embedding = [0.25] * EMBEDDING_DIM
-    monkeypatch.setattr(knowledge_service, "embed_text", lambda text: embedding)
+    calls = {}
+
+    def fake_embed_text(text, task_type=None):
+        calls["task_type"] = task_type
+        return embedding
+
+    monkeypatch.setattr(knowledge_service, "embed_text", fake_embed_text)
 
     entry = knowledge_service.create_entry(db_session, seeded_user, entry_payload(seeded_sector.id))
 
@@ -74,13 +80,14 @@ def test_create_entry_persists_metadata_and_embedding(db_session, seeded_user, s
     assert entry.answer == "The product team reviews and approves each release."
     assert entry.source == "handbook.md"
     assert entry.embedding == embedding
+    assert calls["task_type"] == "RETRIEVAL_DOCUMENT"
 
 
 def test_create_entry_allows_super_admin_without_sector_membership(
     db_session, seeded_sector, monkeypatch
 ):
     admin = add_user(db_session, role=UserRole.superAdmin)
-    monkeypatch.setattr(knowledge_service, "embed_text", lambda text: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(knowledge_service, "embed_text", lambda text, task_type=None: [0.1] * EMBEDDING_DIM)
 
     entry = knowledge_service.create_entry(db_session, admin, entry_payload(seeded_sector.id))
 
@@ -90,7 +97,7 @@ def test_create_entry_allows_super_admin_without_sector_membership(
 
 def test_delete_entry_allows_assigned_member(db_session, seeded_user, seeded_sector, monkeypatch):
     assign_user_to_sector(db_session, seeded_user, seeded_sector)
-    monkeypatch.setattr(knowledge_service, "embed_text", lambda text: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(knowledge_service, "embed_text", lambda text, task_type=None: [0.1] * EMBEDDING_DIM)
     entry = knowledge_service.create_entry(db_session, seeded_user, entry_payload(seeded_sector.id))
 
     knowledge_service.delete_entry(db_session, seeded_user, entry.id)
@@ -100,7 +107,7 @@ def test_delete_entry_allows_assigned_member(db_session, seeded_user, seeded_sec
 
 def test_delete_entry_rejects_non_owner_without_sector_access(db_session, seeded_user, seeded_sector, monkeypatch):
     assign_user_to_sector(db_session, seeded_user, seeded_sector)
-    monkeypatch.setattr(knowledge_service, "embed_text", lambda text: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(knowledge_service, "embed_text", lambda text, task_type=None: [0.1] * EMBEDDING_DIM)
     entry = knowledge_service.create_entry(db_session, seeded_user, entry_payload(seeded_sector.id))
     other_user = add_user(db_session)
 

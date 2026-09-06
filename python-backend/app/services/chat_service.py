@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 def ask(db: Session, user: User, question: str) -> ChatQueryResponse:
     settings = get_settings()
 
-    embedding = embed_text(question)
+    embedding = embed_text(question, task_type="RETRIEVAL_QUERY")
     matches = retrieval.search(db, embedding, top_k=settings.rag_top_k)
 
     best_score = matches[0][1] if matches else None
