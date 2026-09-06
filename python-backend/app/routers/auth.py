@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user
 from app.db.base import get_db
 from app.db.models.user import User
-from app.schemas.auth import ChangePassword, Token
+from app.schemas.auth import ForgotPasswordRequest, ResetPasswordRequest, ChangePassword, Token
 from app.schemas.user import UserOut, UserSignup
 from app.services import auth_service
 
@@ -26,6 +26,17 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password", status_code=202)
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    auth_service.request_password_reset(db, payload.email)
+    return {"detail": "If that email is registered, a reset link has been sent."}
+
+
+@router.post("/reset-password", status_code=204)
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    auth_service.reset_password(db, payload.user_id, payload.username, payload.token, payload.new_password)
 
 
 @router.post("/change-password", status_code=204)

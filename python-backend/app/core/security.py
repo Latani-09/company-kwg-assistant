@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -17,6 +19,16 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    # A fast deterministic hash (not bcrypt) is fine here: the token itself
+    # carries the entropy, and we need to look rows up by hash equality.
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def create_access_token(user_id: UUID) -> str:
