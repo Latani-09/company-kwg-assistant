@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { Token, User, UserSignup } from "./types";
+import type { ResetPasswordRequest, Token, User, UserSignup } from "./types";
 
 export function login(username: string, password: string): Promise<Token> {
   const body = new URLSearchParams({ username, password });
@@ -12,6 +12,14 @@ export function signup(payload: UserSignup): Promise<User> {
 
 export function me(): Promise<User> {
   return apiFetch<User>("/auth/me");
+}
+
+export function forgotPassword(email: string): Promise<void> {
+  return apiFetch<void>("/auth/forgot-password", { method: "POST", body: { email }, auth: false });
+}
+
+export function resetPassword(payload: ResetPasswordRequest): Promise<void> {
+  return apiFetch<void>("/auth/reset-password", { method: "POST", body: payload, auth: false });
 }
 
 export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
