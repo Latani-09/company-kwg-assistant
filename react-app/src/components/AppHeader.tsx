@@ -45,10 +45,11 @@ export function AppHeader() {
     setSavingPassword(true);
     try {
       await changePassword(currentPassword, newPassword);
-      setPasswordMessage("Password changed successfully.");
+      setChangePasswordOpen(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      logout();
     } catch (error) {
       setPasswordMessage(error instanceof ApiError ? error.detail : "Unable to change password.");
       setPasswordError(true);
