@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import * as chatApi from "../api/chat";
@@ -6,7 +6,7 @@ import * as knowledgeApi from "../api/knowledge";
 import * as sectorsApi from "../api/sectors";
 import { useAuth } from "../auth/AuthContext";
 import { DashboardPage } from "../pages/DashboardPage";
-import { testSectors, testUser } from "./test-utils";
+import { renderWithRouter, testSectors, testUser } from "./test-utils";
 
 vi.mock("../auth/AuthContext", () => ({
   useAuth: vi.fn(),
@@ -55,7 +55,7 @@ function renderDashboard(user = testUser) {
     signup: vi.fn(),
     logout: vi.fn(),
   });
-  return render(<DashboardPage />, { wrapper: undefined });
+  return renderWithRouter(<DashboardPage />);
 }
 
 describe("DashboardPage", () => {
@@ -105,6 +105,7 @@ describe("DashboardPage", () => {
         question: "New policy",
         answer: "Policy details",
         source: "policy.md",
+        gap_id: null,
       }),
     );
   });
@@ -127,5 +128,19 @@ describe("DashboardPage", () => {
     fireEvent.change(input, { target: { value: "Unknown question" } });
     fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
     await waitFor(() => expect(screen.getByText("Gap Logged")).toBeTruthy());
+  });
+
+  it("renders URL sources as compact clickable references", async () => {
+    const urlSource = "https://docs.example.com/policies/remote-work";
+    vi.mocked(knowledgeApi.listEntries).mockResolvedValue([
+      { ...knowledgeEntry, source: urlSource },
+    ]);
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Release process" })).toBeTruthy());
+
+    const link = screen.getByRole("link", { name: /Release process/ });
+    expect(link.getAttribute("href")).toBe(urlSource);
+    expect(link.getAttribute("target")).toBe("_blank");
   });
 });

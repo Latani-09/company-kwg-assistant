@@ -27,6 +27,48 @@ function isLink(value: string): boolean {
   }
 }
 
+function getLinkLabel(value: string, fallback: string): string {
+  try {
+    const url = new URL(value);
+    const fileName = url.pathname.split("/").filter(Boolean).pop();
+    const decodedFileName = fileName ? decodeURIComponent(fileName) : "";
+    return decodedFileName.includes(".") ? decodedFileName : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function SourceReference({ value, label }: { value: string; label: string }) {
+  if (isLink(value)) {
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noreferrer"
+        title={value}
+        className="group flex min-w-0 w-full items-center gap-sm rounded-lg border border-secondary/20 bg-surface-container-low px-sm py-xs text-secondary transition-colors hover:border-secondary/40 hover:bg-secondary/5"
+      >
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-secondary/10">
+          <span className="material-symbols-outlined text-[14px]">description</span>
+        </span>
+        <span className="min-w-0 flex-1 truncate font-medium">{getLinkLabel(value, label)}</span>
+        <span className="material-symbols-outlined shrink-0 text-[16px] transition-transform group-hover:translate-x-0.5">
+          open_in_new
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <span className="flex min-w-0 w-full items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-high px-sm py-xs text-on-surface-variant">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-container-lowest">
+        <span className="material-symbols-outlined text-[14px]">description</span>
+      </span>
+      <span className="min-w-0 truncate text-[10px] font-medium">{value}</span>
+    </span>
+  );
+}
+
 export function DashboardPage() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "superAdmin";
@@ -218,21 +260,9 @@ export function DashboardPage() {
                   {m.sources?.map((s) => (
                     <div
                       key={s.id}
-                      className="mt-sm pt-sm border-t border-surface-variant flex items-center gap-xs text-outline font-label text-label"
+                      className="mt-sm min-w-0 pt-sm border-t border-surface-variant flex items-start gap-xs text-outline font-label text-label"
                     >
-                      <span className="material-symbols-outlined text-[14px]">description</span>
-                      {s.source && isLink(s.source) ? (
-                        <a
-                          href={s.source}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-secondary hover:underline"
-                        >
-                          {s.source}
-                        </a>
-                      ) : (
-                        s.source ?? s.question
-                      )}
+                      <SourceReference value={s.source ?? s.question} label={s.question} />
                     </div>
                   ))}
                   {m.isGap && (
@@ -325,33 +355,19 @@ export function DashboardPage() {
                     </div>
                   ) : (
                     docs.map((doc) => (
-                      <div key={doc.id} className="bg-surface-container-lowest p-sm rounded border border-outline-variant group">
-                        <div className="flex justify-between items-start gap-sm">
-                          <div className="flex-1">
+                      <div key={doc.id} className="min-w-0 bg-surface-container-lowest p-sm rounded border border-outline-variant group">
+                        <div className="flex min-w-0 justify-between items-start gap-sm">
+                          <div className="min-w-0 flex-1">
                             <h4 className="font-small text-small text-primary font-semibold line-clamp-1 break-words">{doc.question}</h4>
                             <p className="font-label text-label text-on-surface-variant font-normal mt-xs line-clamp-2 break-words">{doc.answer}</p>
                             {doc.source && (
-                              <div className="mt-sm flex min-w-0 items-start gap-xs">
-                                <span className="inline-flex min-w-0 max-w-full items-start px-xs py-0.5 rounded text-[10px] font-medium bg-surface-container-high text-on-surface-variant">
-                                  <span className="material-symbols-outlined text-[12px] mr-[2px]">description</span>
-                                  {isLink(doc.source) ? (
-                                    <a
-                                      href={doc.source}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="min-w-0 break-all text-secondary hover:underline"
-                                    >
-                                      {doc.source}
-                                    </a>
-                                  ) : (
-                                    doc.source
-                                  )}
-                                </span>
+                              <div className="mt-sm min-w-0">
+                                <SourceReference value={doc.source} label={doc.question} />
                               </div>
                             )}
                           </div>
                           <button
-                            className="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 p-xs rounded hover:bg-error-container"
+                            className="text-outline hover:text-error transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 p-xs rounded hover:bg-error-container"
                             onClick={() => handleDeleteDoc(doc.id)}
                           >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
