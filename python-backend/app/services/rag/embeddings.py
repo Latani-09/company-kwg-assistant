@@ -16,10 +16,10 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def embed_text(text: str) -> list[float]:
+def embed_text(text: str, task_type: str = "RETRIEVAL_QUERY") -> list[float]:
     response = _get_client().models.embed_content(
         model=EMBEDDING_MODEL,
         contents=text,
-        config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM),
+        config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIM, task_type=task_type),
     )
     return list(response.embeddings[0].values)

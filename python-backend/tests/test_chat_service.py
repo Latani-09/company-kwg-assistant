@@ -22,7 +22,7 @@ def add_entry(db_session, user, sector):
 
 
 def test_ask_creates_gap_when_retrieval_has_no_matches(db_session, seeded_user, monkeypatch):
-    monkeypatch.setattr(chat_service, "embed_text", lambda question: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(chat_service, "embed_text", lambda question, task_type=None: [0.1] * EMBEDDING_DIM)
     monkeypatch.setattr(chat_service.retrieval, "search", lambda db, embedding, top_k: [])
 
     response = chat_service.ask(db_session, seeded_user, "Where is the release checklist?")
@@ -30,16 +30,29 @@ def test_ask_creates_gap_when_retrieval_has_no_matches(db_session, seeded_user, 
     gap = db_session.query(KnowledgeGap).one()
     assert response.answer is None
     assert response.is_gap is True
+    assert response.gap_already_logged is False
     assert response.sources == []
     assert gap.question_text == "Where is the release checklist?"
     assert gap.asker_id == seeded_user.id
+
+
+def test_ask_flags_gap_already_logged_for_repeated_question(db_session, seeded_user, monkeypatch):
+    monkeypatch.setattr(chat_service, "embed_text", lambda question, task_type=None: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(chat_service.retrieval, "search", lambda db, embedding, top_k: [])
+
+    chat_service.ask(db_session, seeded_user, "Where is the release checklist?")
+    response = chat_service.ask(db_session, seeded_user, "Where is the release checklist?")
+
+    assert response.is_gap is True
+    assert response.gap_already_logged is True
+    assert db_session.query(KnowledgeGap).count() == 1
 
 
 def test_ask_generates_answer_and_sources_for_confident_match(
     db_session, seeded_user, seeded_sector, monkeypatch
 ):
     entry = add_entry(db_session, seeded_user, seeded_sector)
-    monkeypatch.setattr(chat_service, "embed_text", lambda question: [0.1] * EMBEDDING_DIM)
+    monkeypatch.setattr(chat_service, "embed_text", lambda question, task_type=None: [0.1] * EMBEDDING_DIM)
     monkeypatch.setattr(chat_service.retrieval, "search", lambda db, embedding, top_k: [(entry, 0.9)])
     monkeypatch.setattr(
         chat_service.generation,

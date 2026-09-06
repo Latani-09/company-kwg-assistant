@@ -43,6 +43,22 @@ def test_embed_text_calls_gemini_with_model_and_dimension(monkeypatch):
     assert calls["model"] == embeddings.EMBEDDING_MODEL
     assert calls["contents"] == "release process"
     assert calls["config"].output_dimensionality == EMBEDDING_DIM
+    assert calls["config"].task_type == "RETRIEVAL_QUERY"
+
+
+def test_embed_text_passes_through_document_task_type(monkeypatch):
+    calls = {}
+
+    class FakeModels:
+        def embed_content(self, **kwargs):
+            calls.update(kwargs)
+            return SimpleNamespace(embeddings=[SimpleNamespace(values=[0.1, 0.2])])
+
+    monkeypatch.setattr(embeddings, "_get_client", lambda: SimpleNamespace(models=FakeModels()))
+
+    embeddings.embed_text("Q: ...\nA: ...", task_type="RETRIEVAL_DOCUMENT")
+
+    assert calls["config"].task_type == "RETRIEVAL_DOCUMENT"
 
 
 def test_generate_builds_grounded_json_prompt(monkeypatch):
@@ -121,7 +137,9 @@ def test_retrieval_returns_empty_for_empty_database(db_session):
     assert retrieval.search(db_session, [0.0] * EMBEDDING_DIM) == []
 
 
-def test_gap_detection_covers_threshold_and_llm_veto_cases():
+def test_gap_detection_covers_threshold_and_llm_veto_cases(monkeypatch):
+    monkeypatch.setattr(gap_detection, "get_settings", lambda: SimpleNamespace(rag_similarity_floor=0.55))
+
     assert gap_detection.decide(None, None) is True
     assert gap_detection.decide(0.54, True) is True
     assert gap_detection.decide(0.9, False) is True

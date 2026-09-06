@@ -2,12 +2,14 @@
 
 ## Version History
 
-- Version: 0.5.0
+- Version: 0.6.1
 - Last updated: 2026-09-06
 - Status: Initial project operating guide and repository conventions draft
 
 ### Change log
 
+- v0.6.1: The gap-dedup fix from v0.6.0 reused an existing open gap silently, but the chat reply always said "I have flagged this gap for review" even on a re-ask — misleading, since nothing new happened. `create_gap()` now reports whether the gap was newly opened or already tracked, and the dashboard shows a distinct "already been flagged and is awaiting review" message when it was already logged.
+- v0.6.0: Retrieval/gap fixes — (1) dropped the `qa_entries.embedding` ivfflat index, which was sized for a much larger table and silently skipped the true nearest neighbor at current row counts; replaced with an exact scan. (2) Fixed QA retrieval missing paraphrased questions: embeddings now set Gemini's `task_type` asymmetrically (`RETRIEVAL_DOCUMENT` on index, `RETRIEVAL_QUERY` on search) and `rag_similarity_floor` lowered from 0.55 to 0.4 so borderline-but-correct matches reach the LLM check instead of auto-flagging as a gap. (3) `create_gap()` now reuses an existing non-resolved gap for the same question (trimmed, case-insensitive) instead of creating a duplicate row per repeated ask.
 - v0.5.0: Added self-service password reset — backend generates a single-use, expiring token (hash stored, not the token itself), emails a deep link via the existing SMTP `send_email` path, and exposes `POST /auth/forgot-password` / `POST /auth/reset-password`; frontend adds a "Forgot password?" flow on the login page and a `/reset-password` page that consumes the emailed link.
 - v0.4.0: Docs restructure — root README rewritten as a standard project overview (what it does, tech stack, structure); technical decisions moved to `resources/docs/Plan.md`; BACKLOG.md completed items moved to a Done section; added `resources/docs/Database.md` (schema/ER reference) and `resources/docs/Architecture.md` (architecture diagram + key architectural decisions); Architecture overview here now links to `Architecture.md` instead of duplicating its diagram.
 - v0.3.0: Added backend (pytest) and frontend (Vitest + Playwright) test suites with CI, plus test strategy/coverage docs (`resources/docs/Testing.md`, `TestCases.md`).

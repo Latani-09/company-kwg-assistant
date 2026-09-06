@@ -33,7 +33,7 @@ def list_entries(db: Session, sector_id: uuid.UUID) -> list[QAEntry]:
 def create_entry(db: Session, user: User, payload: QAEntryCreate) -> QAEntry:
     _assert_sector_access(db, user, payload.sector_id)
 
-    embedding = embed_text(f"{payload.question}\n{payload.answer}")
+    embedding = embed_text(f"{payload.question}\n{payload.answer}", task_type="RETRIEVAL_DOCUMENT")
 
     entry = QAEntry(
         sector_id=payload.sector_id,

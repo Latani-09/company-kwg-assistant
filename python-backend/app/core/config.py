@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-secret-change-me"
     jwt_expire_minutes: int = 60
     password_reset_expire_minutes: int = 30
-    rag_similarity_floor: float = 0.55
+    rag_similarity_floor: float = 0.4
     rag_top_k: int = 5
 
     smtp_host: str = ""

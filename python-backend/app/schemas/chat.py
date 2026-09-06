@@ -19,3 +19,4 @@ class ChatQueryResponse(BaseModel):
     sources: list[ChatSource] = []
     is_gap: bool
     confidence: float | None = None
+    gap_already_logged: bool = False

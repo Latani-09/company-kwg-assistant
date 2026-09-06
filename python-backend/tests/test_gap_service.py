@@ -38,13 +38,54 @@ def test_create_gap_copies_chat_query_metadata(db_session, seeded_user):
     db_session.add(query)
     db_session.flush()
 
-    gap = gap_service.create_gap(db_session, query)
+    gap, is_new = gap_service.create_gap(db_session, query)
 
     assert gap.status == GapStatus.open
     assert gap.source_query_id == query.id
     assert gap.asker_id == seeded_user.id
     assert gap.question_text == query.question_text
     assert gap.id is not None
+    assert is_new is True
+
+
+def test_create_gap_reuses_existing_open_gap_for_same_question(db_session, seeded_user):
+    first_query = ChatQuery(
+        id=uuid4(), asker_id=seeded_user.id, question_text="Where is the release checklist?", is_gap=True
+    )
+    second_query = ChatQuery(
+        id=uuid4(), asker_id=seeded_user.id, question_text="  WHERE IS THE release checklist?  ", is_gap=True
+    )
+    db_session.add_all([first_query, second_query])
+    db_session.flush()
+
+    first_gap, first_is_new = gap_service.create_gap(db_session, first_query)
+    second_gap, second_is_new = gap_service.create_gap(db_session, second_query)
+
+    assert second_gap.id == first_gap.id
+    assert db_session.query(KnowledgeGap).count() == 1
+    assert first_is_new is True
+    assert second_is_new is False
+
+
+def test_create_gap_opens_new_gap_when_prior_one_is_resolved(db_session, seeded_user):
+    first_query = ChatQuery(
+        id=uuid4(), asker_id=seeded_user.id, question_text="Where is the release checklist?", is_gap=True
+    )
+    db_session.add(first_query)
+    db_session.flush()
+    first_gap, _ = gap_service.create_gap(db_session, first_query)
+    gap_service.resolve_gap(db_session, first_gap.id, seeded_user)
+
+    second_query = ChatQuery(
+        id=uuid4(), asker_id=seeded_user.id, question_text="Where is the release checklist?", is_gap=True
+    )
+    db_session.add(second_query)
+    db_session.flush()
+    second_gap, second_is_new = gap_service.create_gap(db_session, second_query)
+
+    assert second_gap.id != first_gap.id
+    assert db_session.query(KnowledgeGap).count() == 2
+    assert second_is_new is True
 
 
 def test_resolve_gap_rejects_missing_gap(db_session, seeded_user):
