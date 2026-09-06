@@ -41,9 +41,11 @@ def ask(db: Session, user: User, question: str) -> ChatQueryResponse:
     db.flush()
 
     if is_gap:
-        gap_service.create_gap(db, chat_query)
+        _, gap_is_new = gap_service.create_gap(db, chat_query)
         db.commit()
-        return ChatQueryResponse(answer=None, sources=[], is_gap=True, confidence=best_score)
+        return ChatQueryResponse(
+            answer=None, sources=[], is_gap=True, confidence=best_score, gap_already_logged=not gap_is_new
+        )
 
     db.commit()
 

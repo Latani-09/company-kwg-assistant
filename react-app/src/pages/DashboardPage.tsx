@@ -160,7 +160,9 @@ export function DashboardPage() {
           ? {
               id: messageId++,
               sender: "assistant",
-              text: "I don't have information on that in my current knowledge base. I have flagged this gap for review.",
+              text: response.gap_already_logged
+                ? "I don't have information on that in my current knowledge base. This gap has already been flagged and is awaiting review."
+                : "I don't have information on that in my current knowledge base. I have flagged this gap for review.",
               isGap: true,
             }
           : {

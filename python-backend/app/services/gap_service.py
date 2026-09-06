@@ -15,12 +15,15 @@ from app.schemas.gap import GapAssignRequest
 from app.services.mail_service import send_email
 
 
-def create_gap(db: Session, chat_query: ChatQuery) -> KnowledgeGap:
+def create_gap(db: Session, chat_query: ChatQuery) -> tuple[KnowledgeGap, bool]:
     """One open work item per distinct question, no matter how many times it's asked.
 
     Without this check, every failed chat query for the same wording (e.g. someone
     re-asking after seeing "I don't know") piled up as its own gap row instead of
     surfacing as one item for an admin to act on.
+
+    Returns `(gap, is_new)` so callers can tell a freshly-opened gap from one that
+    was already being tracked, and let the asker know accordingly.
     """
     normalized_question = chat_query.question_text.strip().lower()
     existing = (
@@ -32,7 +35,7 @@ def create_gap(db: Session, chat_query: ChatQuery) -> KnowledgeGap:
         .first()
     )
     if existing is not None:
-        return existing
+        return existing, False
 
     gap = KnowledgeGap(
         source_query_id=chat_query.id,
@@ -42,7 +45,7 @@ def create_gap(db: Session, chat_query: ChatQuery) -> KnowledgeGap:
     )
     db.add(gap)
     db.flush()
-    return gap
+    return gap, True
 
 
 def resolve_gap(db: Session, gap_id: uuid.UUID, resolved_by: User) -> KnowledgeGap:

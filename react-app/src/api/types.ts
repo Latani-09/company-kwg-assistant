@@ -82,6 +82,7 @@ export interface ChatQueryResponse {
   sources: ChatSource[];
   is_gap: boolean;
   confidence: number | null;
+  gap_already_logged: boolean;
 }
 
 export interface Gap {
