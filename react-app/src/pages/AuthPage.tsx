@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { forgotPassword } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 import { SectorChips } from "../components/SectorChips";
 import type { SignupSectorInput } from "../api/types";
@@ -18,6 +19,11 @@ export function AuthPage() {
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginBusy, setLoginBusy] = useState(false);
+
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const [signupName, setSignupName] = useState("");
   const [signupUsername, setSignupUsername] = useState("");
@@ -81,6 +87,29 @@ export function AuthPage() {
   function closeModal() {
     setStatusModal(null);
     switchTab("login");
+  }
+
+  function openForgotPassword() {
+    setForgotEmail("");
+    setForgotSent(false);
+    setForgotOpen(true);
+  }
+
+  function closeForgotPassword() {
+    setForgotOpen(false);
+  }
+
+  async function handleForgotPassword(e: FormEvent) {
+    e.preventDefault();
+    setForgotBusy(true);
+    try {
+      await forgotPassword(forgotEmail);
+    } catch {
+      // Ignore — the backend never reveals whether an email is registered.
+    } finally {
+      setForgotBusy(false);
+      setForgotSent(true);
+    }
   }
 
   const tabButtonClass = (isActive: boolean) =>
@@ -152,6 +181,13 @@ export function AuthPage() {
                 >
                   {loginBusy ? "Signing in…" : "Access Workspace"}
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+                <button
+                  className="w-full text-center font-small text-small text-on-surface-variant hover:text-primary transition-colors mt-sm"
+                  type="button"
+                  onClick={openForgotPassword}
+                >
+                  Forgot password?
                 </button>
               </form>
             </div>
@@ -284,6 +320,66 @@ export function AuthPage() {
             >
               Return to Login
             </button>
+          </div>
+        </div>
+      )}
+
+      {forgotOpen && (
+        <div className="fixed inset-0 bg-on-background/50 backdrop-blur-sm flex items-center justify-center z-50 p-md">
+          <div className="bg-surface-container-lowest p-lg rounded-xl shadow-lg max-w-[24rem] w-full border border-surface-container-highest">
+            {forgotSent ? (
+              <>
+                <div className="flex items-center gap-sm mb-md text-on-tertiary-container">
+                  <span className="material-symbols-outlined text-[24px]">mark_email_read</span>
+                  <h3 className="font-h3 text-h3">Check your email</h3>
+                </div>
+                <p className="font-body-md text-body-md text-on-surface mb-lg">
+                  If that email is registered, a reset link has been sent. Follow the link to choose a new
+                  password.
+                </p>
+                <button
+                  className="w-full bg-surface-container border border-outline-variant hover:bg-surface-container-high transition-colors text-primary font-small text-small py-sm rounded-lg"
+                  onClick={closeForgotPassword}
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <h3 className="font-h3 text-h3 text-on-surface mb-md">Reset your password</h3>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-md">
+                  Enter your account email and we'll send you a link to reset your password.
+                </p>
+                <label className="block font-label text-label text-on-surface mb-xs" htmlFor="forgot-email">
+                  Email
+                </label>
+                <input
+                  id="forgot-email"
+                  className="input-field w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-on-surface placeholder:text-on-surface-variant mb-lg"
+                  placeholder="jane@company.com"
+                  required
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                />
+                <div className="flex gap-sm">
+                  <button
+                    className="flex-1 bg-surface-container border border-outline-variant hover:bg-surface-container-high transition-colors text-primary font-small text-small py-sm rounded-lg"
+                    type="button"
+                    onClick={closeForgotPassword}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 bg-[#3B82F6] hover:bg-blue-600 text-white font-small text-small py-sm rounded-lg transition-colors disabled:opacity-60"
+                    type="submit"
+                    disabled={forgotBusy}
+                  >
+                    {forgotBusy ? "Sending…" : "Send Link"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

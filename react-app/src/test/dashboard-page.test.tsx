@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import * as chatApi from "../api/chat";
@@ -105,6 +105,7 @@ describe("DashboardPage", () => {
         question: "New policy",
         answer: "Policy details",
         source: "policy.md",
+        gap_id: null,
       }),
     );
   });
@@ -136,10 +137,10 @@ describe("DashboardPage", () => {
     ]);
     renderDashboard();
 
-    await waitFor(() => expect(screen.getByText("Release process")).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Release process" })).toBeTruthy());
 
-    const link = screen.getByRole("link", { name: "Release process" });
-    expect(link).toHaveAttribute("href", urlSource);
-    expect(link).toHaveAttribute("target", "_blank");
+    const link = screen.getByRole("link", { name: /Release process/ });
+    expect(link.getAttribute("href")).toBe(urlSource);
+    expect(link.getAttribute("target")).toBe("_blank");
   });
 });

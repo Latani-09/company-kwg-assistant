@@ -2,12 +2,13 @@
 
 ## Version History
 
-- Version: 0.4.0
+- Version: 0.5.0
 - Last updated: 2026-09-06
 - Status: Initial project operating guide and repository conventions draft
 
 ### Change log
 
+- v0.5.0: Added self-service password reset — backend generates a single-use, expiring token (hash stored, not the token itself), emails a deep link via the existing SMTP `send_email` path, and exposes `POST /auth/forgot-password` / `POST /auth/reset-password`; frontend adds a "Forgot password?" flow on the login page and a `/reset-password` page that consumes the emailed link.
 - v0.4.0: Docs restructure — root README rewritten as a standard project overview (what it does, tech stack, structure); technical decisions moved to `resources/docs/Plan.md`; BACKLOG.md completed items moved to a Done section; added `resources/docs/Database.md` (schema/ER reference) and `resources/docs/Architecture.md` (architecture diagram + key architectural decisions); Architecture overview here now links to `Architecture.md` instead of duplicating its diagram.
 - v0.3.0: Added backend (pytest) and frontend (Vitest + Playwright) test suites with CI, plus test strategy/coverage docs (`resources/docs/Testing.md`, `TestCases.md`).
 - v0.2.0: Added BACKLOG.md and DEPLOYMENT.md references to the repo structure.

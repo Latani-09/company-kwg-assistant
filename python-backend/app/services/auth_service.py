@@ -1,14 +1,26 @@
 import re
 import uuid
+from datetime import datetime, timedelta, timezone
+from html import escape
+from urllib.parse import quote
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.config import get_settings
+from app.core.security import (
+    create_access_token,
+    generate_reset_token,
+    hash_password,
+    hash_reset_token,
+    verify_password,
+)
+from app.db.models.password_reset import PasswordReset
 from app.db.models.sector import Sector
 from app.db.models.user import User, UserStatus
 from app.db.models.user_sector import UserSector
 from app.schemas.user import UserSignup
+from app.services.mail_service import send_email
 
 
 def _slugify(label: str) -> str:
@@ -71,6 +83,81 @@ def login(db: Session, username: str, password: str) -> str:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="access_revoked")
 
     return create_access_token(user.id)
+
+
+def request_password_reset(db: Session, email: str) -> None:
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        # Don't reveal whether the email is registered.
+        return
+
+    settings = get_settings()
+
+    # Invalidate any reset links already in flight for this user.
+    db.query(PasswordReset).filter(
+        PasswordReset.user_id == user.id, PasswordReset.used_at.is_(None)
+    ).delete()
+
+    token = generate_reset_token()
+    db.add(
+        PasswordReset(
+            user_id=user.id,
+            token_hash=hash_reset_token(token),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=settings.password_reset_expire_minutes),
+        )
+    )
+    db.commit()
+
+    app_base_url = settings.app_base_url.rstrip("/")
+    deep_link = (
+        f"{app_base_url}/reset-password?uid={user.id}&username={quote(user.username)}&token={token}"
+        if app_base_url
+        else None
+    )
+
+    body_lines = [f"Hi {user.name},", "", "We received a request to reset your KnowledgeAssistant password."]
+    html_body = None
+    if deep_link:
+        body_lines += [
+            "",
+            f"This link expires in {settings.password_reset_expire_minutes} minutes and can only be used once:",
+            "",
+            deep_link,
+        ]
+        html_body = (
+            f"<p>Hi {escape(user.name)},</p>"
+            "<p>We received a request to reset your KnowledgeAssistant password.</p>"
+            f'<p><a href="{escape(deep_link)}">Reset your password</a> '
+            f"(expires in {settings.password_reset_expire_minutes} minutes, single use).</p>"
+        )
+    body_lines += ["", "If you didn't request this, you can safely ignore this email."]
+
+    send_email(
+        to=user.email,
+        subject="Reset your KnowledgeAssistant password",
+        body="\n".join(body_lines),
+        html_body=html_body,
+    )
+
+
+def reset_password(db: Session, user_id: uuid.UUID, username: str, token: str, new_password: str) -> None:
+    invalid = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset link")
+
+    user = db.get(User, user_id)
+    if user is None or user.username != username:
+        raise invalid
+
+    reset = (
+        db.query(PasswordReset)
+        .filter(PasswordReset.user_id == user_id, PasswordReset.token_hash == hash_reset_token(token))
+        .first()
+    )
+    if reset is None or reset.used_at is not None or reset.expires_at < datetime.now(timezone.utc):
+        raise invalid
+
+    user.password_hash = hash_password(new_password)
+    reset.used_at = datetime.now(timezone.utc)
+    db.commit()
 
 
 def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:

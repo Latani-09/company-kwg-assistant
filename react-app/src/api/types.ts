@@ -44,6 +44,13 @@ export interface Token {
   token_type: string;
 }
 
+export interface ResetPasswordRequest {
+  user_id: string;
+  username: string;
+  token: string;
+  new_password: string;
+}
+
 export interface QAEntry {
   id: string;
   sector_id: string;
