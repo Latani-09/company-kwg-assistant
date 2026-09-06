@@ -98,6 +98,24 @@ def test_login_rejects_invalid_password(db_session):
     assert error.value.detail == "Incorrect username or password"
 
 
+def test_change_password_updates_hash(db_session):
+    user = add_login_user(db_session)
+
+    auth_service.change_password(db_session, user, "correct-password", "new-password")
+
+    assert auth_service.login(db_session, user.username, "new-password")
+
+
+def test_change_password_rejects_incorrect_current_password(db_session):
+    user = add_login_user(db_session)
+
+    with pytest.raises(HTTPException) as error:
+        auth_service.change_password(db_session, user, "wrong-password", "new-password")
+
+    assert error.value.status_code == 400
+    assert error.value.detail == "Current password is incorrect"
+
+
 def test_login_rejects_missing_user(db_session):
     with pytest.raises(HTTPException) as error:
         auth_service.login(db_session, "missing-user", "correct-password")

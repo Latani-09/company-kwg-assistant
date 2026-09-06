@@ -71,3 +71,11 @@ def login(db: Session, username: str, password: str) -> str:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="access_revoked")
 
     return create_access_token(user.id)
+
+
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:
+    if not verify_password(current_password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+
+    user.password_hash = hash_password(new_password)
+    db.commit()

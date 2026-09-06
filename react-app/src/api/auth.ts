@@ -13,3 +13,10 @@ export function signup(payload: UserSignup): Promise<User> {
 export function me(): Promise<User> {
   return apiFetch<User>("/auth/me");
 }
+
+export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return apiFetch<void>("/auth/change-password", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}

@@ -185,8 +185,8 @@ export function DashboardPage() {
     <div className="h-full flex flex-col bg-background text-on-surface font-body-md">
       <AppHeader />
 
-      <main className="flex-1 w-full max-w-[1200px] mx-auto p-lg flex flex-col md:flex-row gap-lg overflow-hidden h-[calc(100vh-80px)]">
-        <section className="flex-1 flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden h-full">
+      <main className="flex-1 w-full max-w-[1200px] mx-auto p-lg flex flex-col md:flex-row gap-lg overflow-y-auto md:overflow-hidden h-auto md:h-[calc(100vh-80px)]">
+        <section className="flex-1 flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] overflow-hidden h-[60vh] min-h-[420px] md:h-full">
           <div className="p-md border-b border-surface-variant flex items-center justify-between bg-surface-bright">
             <div className="flex items-center gap-sm">
               <div className="w-8 h-8 rounded-full bg-secondary-container text-secondary flex items-center justify-center">
@@ -285,7 +285,7 @@ export function DashboardPage() {
         </section>
 
         {showKnowledgeBase && (
-        <section className="w-full md:w-[400px] lg:w-[450px] flex flex-col gap-md h-full overflow-hidden">
+        <section className="w-full md:w-[400px] lg:w-[450px] flex flex-col gap-md md:h-full overflow-hidden">
           <div className="bg-surface-container-lowest p-md rounded-lg border border-outline-variant shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] flex-shrink-0">
             <h3 className="font-h3 text-h3 text-primary mb-xs">My Knowledge Base</h3>
             <p className="font-small text-small text-on-surface-variant font-normal">Manage documents assigned to your active sectors.</p>
@@ -328,18 +328,18 @@ export function DashboardPage() {
                       <div key={doc.id} className="bg-surface-container-lowest p-sm rounded border border-outline-variant group">
                         <div className="flex justify-between items-start gap-sm">
                           <div className="flex-1">
-                            <h4 className="font-small text-small text-primary font-semibold line-clamp-1">{doc.question}</h4>
-                            <p className="font-label text-label text-on-surface-variant font-normal mt-xs line-clamp-2">{doc.answer}</p>
+                            <h4 className="font-small text-small text-primary font-semibold line-clamp-1 break-words">{doc.question}</h4>
+                            <p className="font-label text-label text-on-surface-variant font-normal mt-xs line-clamp-2 break-words">{doc.answer}</p>
                             {doc.source && (
-                              <div className="mt-sm flex items-center gap-xs">
-                                <span className="inline-flex items-center px-xs py-0.5 rounded text-[10px] font-medium bg-surface-container-high text-on-surface-variant">
+                              <div className="mt-sm flex min-w-0 items-start gap-xs">
+                                <span className="inline-flex min-w-0 max-w-full items-start px-xs py-0.5 rounded text-[10px] font-medium bg-surface-container-high text-on-surface-variant">
                                   <span className="material-symbols-outlined text-[12px] mr-[2px]">description</span>
                                   {isLink(doc.source) ? (
                                     <a
                                       href={doc.source}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="text-secondary hover:underline"
+                                      className="min-w-0 break-all text-secondary hover:underline"
                                     >
                                       {doc.source}
                                     </a>
