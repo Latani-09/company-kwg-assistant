@@ -18,6 +18,15 @@ interface ChatMessage {
 
 let messageId = 0;
 
+function isLink(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function DashboardPage() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "superAdmin";
@@ -212,7 +221,18 @@ export function DashboardPage() {
                       className="mt-sm pt-sm border-t border-surface-variant flex items-center gap-xs text-outline font-label text-label"
                     >
                       <span className="material-symbols-outlined text-[14px]">description</span>
-                      {s.source ?? s.question}
+                      {s.source && isLink(s.source) ? (
+                        <a
+                          href={s.source}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-secondary hover:underline"
+                        >
+                          {s.source}
+                        </a>
+                      ) : (
+                        s.source ?? s.question
+                      )}
                     </div>
                   ))}
                   {m.isGap && (
@@ -314,7 +334,18 @@ export function DashboardPage() {
                               <div className="mt-sm flex items-center gap-xs">
                                 <span className="inline-flex items-center px-xs py-0.5 rounded text-[10px] font-medium bg-surface-container-high text-on-surface-variant">
                                   <span className="material-symbols-outlined text-[12px] mr-[2px]">description</span>
-                                  {doc.source}
+                                  {isLink(doc.source) ? (
+                                    <a
+                                      href={doc.source}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-secondary hover:underline"
+                                    >
+                                      {doc.source}
+                                    </a>
+                                  ) : (
+                                    doc.source
+                                  )}
                                 </span>
                               </div>
                             )}
